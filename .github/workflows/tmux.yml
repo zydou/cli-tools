@@ -1,0 +1,79 @@
+---
+name: tmux
+run-name: tmux-${{inputs.tmux}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tmux:
+        required: true
+        description: tmux version
+        default: 3.3a
+        type: string
+
+permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: tmux ${{inputs.tmux}}
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Get deps version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "musl=$(gh api /repos/bminor/musl/tags --jq '.[0].name')" >> $GITHUB_ENV
+          echo "ncurses=$(gh api /repos/mirror/ncurses/tags --jq '.[0].name')" >> $GITHUB_ENV
+          echo "upx=$(gh api /repos/upx/upx/tags --jq '.[0].name')" >> $GITHUB_ENV
+          LIBEVENT_VERSION="$(gh api /repos/libevent/libevent/releases/latest --jq .tag_name)"
+          echo "libevent=${LIBEVENT_VERSION#release-}" >> $GITHUB_ENV
+
+      - name: Print versions
+        run: |
+          echo "musl=${{env.musl}}"
+          echo "libevent=${{env.libevent}}"
+          echo "ncurses=${{env.ncurses}}"
+          echo "upx=${{env.upx}}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+      - name: Login to GHCR
+        uses: docker/login-action@master
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        uses: docker/build-push-action@master
+        with:
+          context: ./tmux
+          file: tmux/Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            MUSL_VERSION=${{env.musl}}
+            LIBEVENT_VERSION=${{env.libevent}}
+            NCURSES_VERSION=${{env.ncurses}}
+            TMUX_VERSION=${{inputs.tmux}}
+            UPX_VERSION=${{env.upx}}
+          push: false
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:cache-tmux-${{inputs.tmux}}
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:cache-tmux-${{inputs.tmux}},mode=max
+          outputs: type=local,dest=./tmux-release
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          gh release create "tmux-${{inputs.tmux}}" --notes "build tmux-${{inputs.tmux}} with:<br>musl: ${{env.musl}}<br>libevent: ${{env.libevent}}<br>ncurses: ${{env.ncurses}}<br>tmux: ${{inputs.tmux}}<br><br>Compressed with upx ${{env.upx}}" --title "tmux-${{inputs.tmux}}" --repo "${{github.repository}}" || true
+          gh release edit "tmux-${{inputs.tmux}}" --notes "build tmux-${{inputs.tmux}} with:<br>musl: ${{env.musl}}<br>libevent: ${{env.libevent}}<br>ncurses: ${{env.ncurses}}<br>tmux: ${{inputs.tmux}}<br><br>Compressed with upx ${{env.upx}}" --title "tmux-${{inputs.tmux}}" --repo "${{github.repository}}" || true
+          gh release delete-asset "tmux-${{inputs.tmux}}" "tmux" --yes --repo "${{github.repository}}" || true
+          gh release upload "tmux-${{inputs.tmux}}" "./tmux-release/tmux" --repo "${{github.repository}}"
+          gh release delete-asset "tmux-${{inputs.tmux}}" "tmux-upx" --yes --repo "${{github.repository}}" || true
+          gh release upload "tmux-${{inputs.tmux}}" "./tmux-release/tmux-upx" --repo "${{github.repository}}"
