@@ -1,0 +1,89 @@
+---
+name: stylua
+run-name: build ${{github.workflow}} ${{inputs.version}}
+env:
+  name: stylua
+  upstream: JohnnyMorganz/StyLua
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: version to build (without "v")
+        default: 0.18.2
+        type: string
+
+permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {target: aarch64-unknown-linux-gnu, os: ubuntu-latest, cross: true}
+          - {target: aarch64-unknown-linux-musl, os: ubuntu-latest, cross: true}
+          - {target: aarch64-apple-darwin, os: macos-latest, cross: false}
+          - {target: x86_64-unknown-linux-gnu, os: ubuntu-latest, cross: true}
+          - {target: x86_64-unknown-linux-musl, os: ubuntu-latest, cross: true}
+          - {target: x86_64-apple-darwin, os: macos-latest, cross: false}
+
+    name: Build ${{matrix.target}}
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO: cargo
+      RUST_BACKTRACE: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: ${{env.upstream}}
+          ref: v${{inputs.version}}
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Install musl-gcc on Linux
+        if: matrix.os == 'ubuntu-latest' && ! matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Install Cross
+        if: matrix.cross
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall -y cross
+          echo "CARGO=cross" >> $GITHUB_ENV
+
+      - name: Set profile.release.strip = true
+        shell: bash
+        run: |
+          mkdir -p $HOME/.cargo
+          cat >> $HOME/.cargo/config.toml <<EOF
+          [profile.release]
+          strip = true
+          EOF
+
+      - name: Build release binary
+        run: |-
+          ${{ env.CARGO }} build --release --locked --all-features --target ${{ matrix.target }}
+
+      - name: Upload ${{matrix.target}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          mv "target/${{ matrix.target }}/release/${{env.name}}" ./${{env.name}}
+          tar -cJf "${{env.name}}-v${{inputs.version}}-${{matrix.target}}.tar.xz" ${{env.name}}
+          gh release create "${{env.name}}-v${{inputs.version}}" --notes "Release ${{env.name}} v${{inputs.version}}" --title "${{env.name}}-v${{inputs.version}}" --repo "${{github.repository}}" || true
+          gh release delete-asset "${{env.name}}-v${{inputs.version}}" "${{env.name}}-v${{inputs.version}}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
+          gh release upload "${{env.name}}-v${{inputs.version}}" "./${{env.name}}-v${{inputs.version}}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
