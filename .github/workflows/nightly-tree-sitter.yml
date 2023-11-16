@@ -152,7 +152,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REMOTE_REF: ${{ needs.filter.outputs.remote_ref }}
         run: |-
-          jq '.tree_sitter' = "${{ needs.filter.outputs.remote_ref }}"' manifest.json > temp.json
+          jq '.tree_sitter = "${{ needs.filter.outputs.remote_ref }}"' manifest.json > temp.json
           mv -fv temp.json manifest.json
           cat manifest.json
           git config --global user.name ${{github.actor}}
