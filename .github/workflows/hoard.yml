@@ -44,6 +44,18 @@ jobs:
           repository: ${{env.upstream}}
           ref: v${{inputs.version}}
 
+      # self repo contains a patch to apply
+      - name: Checkout self repository
+        uses: actions/checkout@main
+        with:
+          path: self
+
+      # https://github.com/sfackler/rust-openssl/issues/603
+      - name: Apply openssl path
+        run: |
+          git apply self/${{env.name}}/openssl.patch
+          rm -rf self
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -76,7 +88,7 @@ jobs:
 
       - name: Build release binary
         run: |-
-          ${{ env.CARGO }} build --release --locked --target ${{ matrix.target }}
+          ${{ env.CARGO }} build --release --target ${{ matrix.target }}
 
       - name: Upload ${{matrix.target}}
         env:
