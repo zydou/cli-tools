@@ -13,7 +13,8 @@ Build architectures:
 - x86_64-unknown-linux-gnu
 - x86_64-apple-darwin
 
-Download: https://github.com/zydou/cli-tools/releases/tag/viu
+Download: https://github.com/zydou/cli-tools/releases?q=viu
+Nightly Build: https://github.com/zydou/cli-tools/releases/tag/viu
 
 ## On a Kitty terminal
 

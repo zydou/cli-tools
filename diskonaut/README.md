@@ -13,6 +13,7 @@ Build architectures:
 - x86_64-unknown-linux-gnu
 - x86_64-apple-darwin
 
-Download: https://github.com/zydou/cli-tools/releases/tag/diskonaut
+Download: https://github.com/zydou/cli-tools/releases?q=diskonaut
+Nightly Build: https://github.com/zydou/cli-tools/releases/tag/diskonaut
 
 ![demo](https://raw.githubusercontent.com/imsnif/diskonaut/bd5572e0a1a3103c976150692413aa2fbff7f22b/demo.gif)

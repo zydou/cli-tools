@@ -13,4 +13,5 @@ Build architectures:
 - x86_64-unknown-linux-gnu
 - x86_64-apple-darwin
 
-Download: https://github.com/zydou/cli-tools/releases/tag/ripgrep
+Download: https://github.com/zydou/cli-tools/releases?q=ripgrep
+Nightly Build: https://github.com/zydou/cli-tools/releases/tag/ripgrep

@@ -13,6 +13,7 @@ Build architectures:
 - x86_64-unknown-linux-gnu
 - x86_64-apple-darwin
 
-Download: https://github.com/zydou/cli-tools/releases/tag/dua
+Download: https://github.com/zydou/cli-tools/releases?q=dua
+Nightly Build: https://github.com/zydou/cli-tools/releases/tag/dua
 
 [![asciicast](https://asciinema.org/a/316444.svg)](https://asciinema.org/a/316444)
