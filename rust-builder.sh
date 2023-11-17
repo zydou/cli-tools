@@ -66,9 +66,9 @@ if [ "$(uname -s)" = "Linux" ]; then
 
 else
     eval "cargo build ${BUILD_ARGS} --target x86_64-apple-darwin"
-    release aarch64-apple-darwin
+    release x86_64-apple-darwin
 
     rustup target add aarch64-apple-darwin
     eval "cargo build ${BUILD_ARGS} --target aarch64-apple-darwin"
-    release x86_64-apple-darwin
+    release aarch64-apple-darwin
 fi
