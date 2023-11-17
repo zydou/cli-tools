@@ -1,0 +1,18 @@
+{
+    "bandwhich": {"bin": "bandwhich", "upstream": "imsnif/bandwhich", "build_args": "--release --locked"},
+    "bat": {"bin": "bat", "upstream": "sharkdp/bat", "build_args": "--release --locked"},
+    "diskonaut": {"bin": "diskonaut", "upstream": "imsnif/diskonaut", "build_args": "--release --locked"},
+    "dua": {"bin": "dua", "upstream": "Byron/dua-cli", "build_args": "--release --locked"},
+    "fd": {"bin": "fd", "upstream": "sharkdp/fd", "build_args": "--release --locked"},
+    "gitui": {"bin": "gitui", "upstream": "extrawurst/gitui", "build_args": "--release --locked"},
+    "hoard": {"bin": "hoard", "upstream": "Hyde46/hoard", "build_args": "--release --locked"},
+    "igrep": {"bin": "ig", "upstream": "konradsz/igrep", "build_args": "--release --locked"},
+    "joshuto": {"bin": "joshuto", "upstream": "kamiyaa/joshuto", "build_args": "--release --locked"},
+    "onefetch": {"bin": "onefetch", "upstream": "o2sh/onefetch", "build_args": "--release --locked"},
+    "repgrep": {"bin": "rgr", "upstream": "acheronfail/repgrep", "build_args": "--release --locked"},
+    "ripgrep": {"bin": "rg", "upstream": "BurntSushi/ripgrep", "build_args": "--release --locked"},
+    "stylua": {"bin": "stylua", "upstream": "JohnnyMorganz/stylua", "build_args": "--release --locked --all-features"},
+    "tickrs": {"bin": "tickrs", "upstream": "tarkah/tickrs", "build_args": "--release --locked"},
+    "tree_sitter": {"bin": "tree-sitter", "upstream": "tree-sitter/tree-sitter", "build_args": "--release --locked"},
+    "viu": {"bin": "viu", "upstream": "atanunq/viu", "build_args": "--release --locked"}
+  }

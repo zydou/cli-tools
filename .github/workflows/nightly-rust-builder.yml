@@ -1,0 +1,97 @@
+---
+name: rust nightly
+run-name: ${{github.workflow}}
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/nightly-rust-builder.yml
+  schedule:
+    - cron: 45 23 * * *
+
+permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  filter:
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [bandwhich, bat, diskonaut, dua, fd, gitui, hoard, igrep, joshuto, onefetch, repgrep, ripgrep, stylua, tickrs, tree_sitter, viu]
+        os: [ubuntu-latest, macos-latest]
+    name: ${{ matrix.name }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@main
+      - name: create manifest branch if not exist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh api /repos/${{github.repository}}/branches/manifest > /dev/null 2>&1; then
+          git config --global user.name zydou
+          git config --global user.email 23291546+zydou@users.noreply.github.com
+          git checkout --orphan manifest
+          git rm -rf .
+          echo "{}" > manifest.json
+          git add manifest.json
+          git commit --allow-empty -m "chore: create manifest"
+          git push origin manifest
+          git checkout main
+          fi
+
+      - uses: actions/checkout@main
+        with:
+          ref: manifest
+          path: manifest
+
+      - name: check if we need to trigger a build
+        id: check
+        run: |
+          UPSTREAM=$(jq -r ".${{matrix.name}}.upstream" build.json)
+          REMOTE_REF=$(git ls-remote "https://github.com/$UPSTREAM.git" HEAD | awk '{ print $1}')
+          OLD_REF=$(jq -r ".${{matrix.name}}" manifest/manifest.json)
+          if [ "$REMOTE_REF" != "$OLD_REF" ]; then
+          echo "trigger=true" >> "$GITHUB_OUTPUT"
+          else
+          echo "trigger=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "download_url=https://github.com/$UPSTREAM/archive/$REMOTE_REF.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "remote_ref=$REMOTE_REF" >> "$GITHUB_OUTPUT"
+
+      - name: build ${{ matrix.name }}
+        if: steps.check.outputs.trigger == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ matrix.name }}
+          REPO: ${{ github.repository }}
+          DOWNLOAD_URL: ${{ steps.check.outputs.download_url }}
+          REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
+        run: |
+          bash rust-builder.sh
+
+      # checkout manifest self again, because the previous manifest maybe freshed by other builds
+      - uses: actions/checkout@main
+        if: steps.check.outputs.trigger == 'true'
+        with:
+          ref: manifest
+          path: manifest-new
+
+      - name: update manifest
+        if: steps.check.outputs.trigger == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ matrix.name }}
+          REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
+        run: |
+          cd manifest-new
+          jq '.${{ matrix.name }} = "${{ steps.check.outputs.remote_ref }}"' manifest.json > temp.json && mv -fv temp.json manifest.json
+          cat manifest.json
+          git config --global user.name zydou
+          git config --global user.email 23291546+zydou@users.noreply.github.com
+          git config pull.rebase false
+          git add manifest.json
+          git commit -m "chore: update $NAME to ${REMOTE_REF:0:7}" || export NO_UPDATES=true
+          [ "$NO_UPDATES" != "true" ] && git push --force

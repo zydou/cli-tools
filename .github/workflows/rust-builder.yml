@@ -1,0 +1,110 @@
+---
+name: rust-builder
+run-name: build ${{inputs.name}}-${{inputs.tag}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        required: true
+        description: tool name
+        default: bat
+        type: string
+      upstream:
+        required: true
+        description: github repo of upstream
+        default: sharkdp/bat
+        type: string
+      tag:
+        required: true
+        description: repo tag
+        default: 0.24.0
+        type: string
+
+permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {target: aarch64-unknown-linux-gnu, os: ubuntu-latest, cross: true}
+          - {target: aarch64-unknown-linux-musl, os: ubuntu-latest, cross: true}
+          - {target: aarch64-apple-darwin, os: macos-latest, cross: false}
+          - {target: x86_64-unknown-linux-gnu, os: ubuntu-latest, cross: true}
+          - {target: x86_64-unknown-linux-musl, os: ubuntu-latest, cross: true}
+          - {target: x86_64-apple-darwin, os: macos-latest, cross: false}
+
+    name: Build ${{matrix.target}}
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO: cargo
+      RUST_BACKTRACE: 1
+    steps:
+      - name: Checkout upstream
+        uses: actions/checkout@main
+        with:
+          repository: ${{inputs.upstream}}
+          ref: ${{inputs.tag}}
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Install Cross
+        if: matrix.cross
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall -y cross
+          echo "CARGO=cross" >> $GITHUB_ENV
+
+      - name: Set profile.release.strip = true
+        shell: bash
+        run: |
+          mkdir -p $HOME/.cargo
+          cat >> $HOME/.cargo/config.toml <<EOF
+          [profile.release]
+          strip = true
+          EOF
+
+      - uses: actions/checkout@main
+        name: Checkout main branch
+        with:
+          path: self
+
+      - name: set meta data
+        id: meta
+        env:
+          NAME: ${{matrix.name}}
+        run: |
+          KEY_NAME="${NAME//-/_}"  # replace - with _
+          BUILD_ARGS=$(jq -r ".$KEY_NAME.build_args" self/build.json)
+          BIN_NAME=$(jq -r ".$KEY_NAME.bin" self/build.json)
+          echo "build_args=$BUILD_ARGS" >> "$GITHUB_OUTPUT"
+          echo "bin_name=$BIN_NAME" >> "$GITHUB_OUTPUT"
+          rm -rf self
+
+      - name: Build release binary
+        run: |-
+          eval "${{ env.CARGO }} build ${{ steps.meta.outputs.build_args }} --target ${{ matrix.target }}"
+
+      - name: Upload ${{matrix.target}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BIN_NAME: ${{ steps.meta.outputs.bin_name }}
+          TAG: ${{inputs.tag}}
+        run: |-
+          mv "target/${{ matrix.target }}/release/$BIN_NAME" "$BIN_NAME"
+          tar -cJf "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" "$BIN_NAME"
+          gh release create "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/${{inputs.upstream}}/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
+          gh release edit "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/${{inputs.upstream}}/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
+          gh release delete-asset "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
+          gh release upload "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
