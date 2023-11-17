@@ -62,7 +62,7 @@ if [ "$(uname -s)" = "Linux" ]; then
     release aarch64-unknown-linux-musl
 else
     eval "cargo build ${BUILD_ARGS} --target x86_64-apple-darwin"
-    rustup target add x86_64-apple-darwin
+    rustup target add aarch64-apple-darwin
     eval "cargo build ${BUILD_ARGS} --target aarch64-apple-darwin"
 
     release x86_64-apple-darwin
