@@ -58,7 +58,6 @@ jobs:
           else
           echo "trigger=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "download_url=https://github.com/$UPSTREAM/archive/$REMOTE_REF.tar.gz" >> "$GITHUB_OUTPUT"
           echo "remote_ref=$REMOTE_REF" >> "$GITHUB_OUTPUT"
 
       - name: build ${{ matrix.name }}
@@ -67,7 +66,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NAME: ${{ matrix.name }}
           REPO: ${{ github.repository }}
-          DOWNLOAD_URL: ${{ steps.check.outputs.download_url }}
           REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
         run: |
           bash rust-builder.sh

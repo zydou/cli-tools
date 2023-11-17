@@ -8,10 +8,7 @@ BUILD_ARGS=$(jq -r ".$NAME.build_args" build.json)
 BIN_NAME=$(jq -r ".$NAME.bin" build.json)
 
 if [ ! -d ".build_$NAME" ]; then
-mkdir ".build_$NAME"
-curl -sSLf -o "$NAME-src.tar.gz" "$DOWNLOAD_URL"
-tar -C ".build_$NAME" --strip-components=1 -xzf "$NAME-src.tar.gz"
-rm -f "$NAME-src.tar.gz"
+git clone --depth 1 "https://github.com/$REPO.git" ".build_$NAME"
 fi
 cd ".build_$NAME" || exit
 
@@ -30,7 +27,7 @@ EOF
 
 function release() {
     local TARGET=$1
-    mv "target/$TARGET/release/$BIN_NAME" "$BIN_NAME"
+    mv -fv "$ROOT/.build_$NAME/target/$TARGET/release/$BIN_NAME" "$BIN_NAME"
     tar -cJf "$NAME-$TARGET.tar.xz" "$BIN_NAME"
 
     gh release create "$NAME-${REMOTE_REF:0:7}" --prerelease --notes "Nightly build $NAME based on https://github.com/$UPSTREAM/tree/$REMOTE_REF" --title "$NAME-${REMOTE_REF:0:7}" --repo "$REPO" || true
