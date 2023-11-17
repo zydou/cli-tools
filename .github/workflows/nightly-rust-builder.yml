@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@main
       - name: create manifest branch if not exist
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           if ! gh api /repos/${{github.repository}}/branches/manifest > /dev/null 2>&1; then
           git config --global user.name zydou
@@ -66,7 +66,7 @@ jobs:
       - name: build ${{ matrix.name }}
         if: steps.check.outputs.trigger == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           NAME: ${{ matrix.name }}
           REPO: ${{ github.repository }}
           REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
@@ -83,7 +83,7 @@ jobs:
       - name: update manifest
         if: steps.check.outputs.trigger == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           NAME: ${{ matrix.name }}
           REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
         run: |

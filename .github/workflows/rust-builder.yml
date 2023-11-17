@@ -70,7 +70,7 @@ jobs:
       - name: Install Cross
         if: matrix.cross
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall -y cross
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload ${{matrix.target}}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           BIN_NAME: ${{ steps.meta.outputs.bin_name }}
           UPSTREAM: ${{ steps.meta.outputs.upstream }}
           TAG: ${{inputs.tag}}
