@@ -20,8 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [bandwhich, bat, broot, diskonaut, dua, fd, gitui, hoard, igrep, joshuto, onefetch, repgrep, ripgrep, stylua, tickrs, tree-sitter, viu]
         os: [ubuntu-latest, macos-latest]
+        name: [bandwhich, bat, broot, diskonaut, dua, fd, gitui, hoard, igrep, joshuto, macchina, onefetch, repgrep, ripgrep, stylua, tickrs, tree-sitter, viu]
     name: ${{ matrix.name }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:

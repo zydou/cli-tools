@@ -9,6 +9,7 @@
     "hoard": {"bin": "hoard", "upstream": "Hyde46/hoard", "build_args": "--release"},
     "igrep": {"bin": "ig", "upstream": "konradsz/igrep", "build_args": "--release --locked"},
     "joshuto": {"bin": "joshuto", "upstream": "kamiyaa/joshuto", "build_args": "--release --locked"},
+    "macchina": {"bin": "macchina", "upstream": "Macchina-CLI/macchina", "build_args": "--release --locked"},
     "onefetch": {"bin": "onefetch", "upstream": "o2sh/onefetch", "build_args": "--release --locked"},
     "repgrep": {"bin": "rgr", "upstream": "acheronfail/repgrep", "build_args": "--release --locked"},
     "ripgrep": {"bin": "rg", "upstream": "BurntSushi/ripgrep", "build_args": "--release --locked"},
