@@ -18,5 +18,6 @@
   "libevent": "cfb2b89a1d0642abd6389913e237f49c662502e4",
   "ncurses": "87c2c84cbd2332d6d94b12a1dcaf12ad1a51a938",
   "tmux": "bdf8e614af34ba1eaa8243d3a818c8546cb21812",
-  "upx": "v4.2.1"
+  "upx": "v4.2.1",
+  "broot": "996b34fb5cb2dfafe87269ee97b895b4e09bf937"
 }
