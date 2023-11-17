@@ -52,19 +52,22 @@ fi
 # Build & Release
 if [ "$(uname -s)" = "Linux" ]; then
     eval "cross build ${BUILD_ARGS} --target x86_64-unknown-linux-gnu"
-    eval "cross build ${BUILD_ARGS} --target x86_64-unknown-linux-musl"
-    eval "cross build ${BUILD_ARGS} --target aarch64-unknown-linux-gnu"
-    eval "cross build ${BUILD_ARGS} --target aarch64-unknown-linux-musl"
-
     release x86_64-unknown-linux-gnu
+
+    eval "cross build ${BUILD_ARGS} --target x86_64-unknown-linux-musl"
     release x86_64-unknown-linux-musl
+
+    eval "cross build ${BUILD_ARGS} --target aarch64-unknown-linux-gnu"
     release aarch64-unknown-linux-gnu
+
+    eval "cross build ${BUILD_ARGS} --target aarch64-unknown-linux-musl"
     release aarch64-unknown-linux-musl
+
 else
     eval "cargo build ${BUILD_ARGS} --target x86_64-apple-darwin"
+    release aarch64-apple-darwin
+
     rustup target add aarch64-apple-darwin
     eval "cargo build ${BUILD_ARGS} --target aarch64-apple-darwin"
-
     release x86_64-apple-darwin
-    release aarch64-apple-darwin
 fi
