@@ -68,7 +68,7 @@ function release_target() {
 
 function pre_build_steps() {
     local TARGET=$1
-
+    cd "$GITDIR"
     # install target toolchain if not use cross
     if [ "$USE_CROSS" = "false" ]; then
         rustup target add "$TARGET"
@@ -77,11 +77,14 @@ function pre_build_steps() {
     # tweaks for individual tools
     if [ "$NAME" = "hoard" ]; then
         git apply "$ROOT/hoard/openssl.patch"
+    elif [ "$NAME" = "tealdeer" ]; then
+        rm -f Cargo.lock
     fi
 }
 
 function post_build_steps() {
     local TARGET=$1
+    cd "$GITDIR"
     rm -rf "$GITDIR/target"
 }
 
