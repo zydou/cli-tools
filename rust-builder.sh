@@ -4,8 +4,9 @@ ROOT="$(pwd)"
 PATH="$HOME/.cargo/bin:$PATH"
 CROSS_VERSION="v0.2.5"
 
-BUILD_ARGS=$(jq -r ".$NAME.build_args" build.json)
-BIN_NAME=$(jq -r ".$NAME.bin" build.json)
+KEY_NAME="${NAME//-/_}"  # replace - with _
+BUILD_ARGS=$(jq -r ".$KEY_NAME.build_args" build.json)
+BIN_NAME=$(jq -r ".$KEY_NAME.bin" build.json)
 
 if [ ! -d ".build_$NAME" ]; then
 git clone --depth 1 "https://github.com/$REPO.git" ".build_$NAME"

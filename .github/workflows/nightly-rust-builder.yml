@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [bandwhich, bat, diskonaut, dua, fd, gitui, hoard, igrep, joshuto, onefetch, repgrep, ripgrep, stylua, tickrs, tree_sitter, viu]
+        name: [bandwhich, bat, diskonaut, dua, fd, gitui, hoard, igrep, joshuto, onefetch, repgrep, ripgrep, stylua, tickrs, tree-sitter, viu]
         os: [ubuntu-latest, macos-latest]
     name: ${{ matrix.name }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -49,10 +49,13 @@ jobs:
 
       - name: check if we need to trigger a build
         id: check
+        env:
+          NAME: ${{matrix.name}}
         run: |
-          UPSTREAM=$(jq -r ".${{matrix.name}}.upstream" build.json)
+          KEY_NAME="${NAME//-/_}"  # replace - with _
+          UPSTREAM=$(jq -r ".$KEY_NAME.upstream" build.json)
           REMOTE_REF=$(git ls-remote "https://github.com/$UPSTREAM.git" HEAD | awk '{ print $1}')
-          OLD_REF=$(jq -r ".${{matrix.name}}" manifest/manifest.json)
+          OLD_REF=$(jq -r ".$KEY_NAME" manifest/manifest.json)
           if [ "$REMOTE_REF" != "$OLD_REF" ]; then
           echo "trigger=true" >> "$GITHUB_OUTPUT"
           else
