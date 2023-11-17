@@ -176,7 +176,7 @@
     "upstream": "JohnnyMorganz/stylua"
   },
   "tailspin": {
-    "bin": "tailspin",
+    "bin": "tspin",
     "build_args": "--release --locked",
     "target_aarch64_darwin": "true",
     "target_aarch64_linux_gnu": "true",
