@@ -14,4 +14,5 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases?q=stylua
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/stylua

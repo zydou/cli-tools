@@ -14,6 +14,7 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases/tag/hoard
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/hoard
 
 ![demo](https://raw.githubusercontent.com/Hyde46/hoard/f8382169a7faabfbdb2a60a075828b296010205e/hoard_example.gif)

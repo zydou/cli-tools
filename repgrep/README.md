@@ -14,6 +14,7 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases?q=repgrep
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/repgrep
 
 ![demo](https://raw.githubusercontent.com/acheronfail/repgrep/fae1135f19f47a373ec1833442c256bd4b14d21c/doc/demo.png)

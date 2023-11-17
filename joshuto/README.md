@@ -14,6 +14,7 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases?q=joshuto
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/joshuto
 
 ![demo](https://raw.githubusercontent.com/kamiyaa/joshuto/561c94fc4117a2ab86b53de5d11951260106bb3e/screenshot.png)

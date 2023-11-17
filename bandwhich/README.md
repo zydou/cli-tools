@@ -14,6 +14,7 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases?q=bandwhich
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/bandwhich
 
 ![demo](https://raw.githubusercontent.com/imsnif/bandwhich/cf9b9f063420b153225d4e2ff49e22a2f97dbddf/res/demo.gif)

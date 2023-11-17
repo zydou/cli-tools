@@ -14,6 +14,7 @@ Build architectures:
 - x86_64-apple-darwin
 
 Download: https://github.com/zydou/cli-tools/releases?q=igrep
+
 Nightly Build: https://github.com/zydou/cli-tools/releases/tag/igrep
 
 ![demo](https://raw.githubusercontent.com/konradsz/igrep/c3880efd58900aea86641ebe11504f502fd16813/assets/demo.gif)
