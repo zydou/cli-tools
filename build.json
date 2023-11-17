@@ -164,6 +164,17 @@
     "target_x86_64_linux_musl": "true",
     "upstream": "JohnnyMorganz/stylua"
   },
+  "tailspin": {
+    "bin": "tailspin",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": "true",
+    "target_aarch64_linux_gnu": "true",
+    "target_aarch64_linux_musl": "true",
+    "target_x86_64_darwin": "true",
+    "target_x86_64_linux_gnu": "true",
+    "target_x86_64_linux_musl": "true",
+    "upstream": "bensadeh/tailspin"
+  },
   "tealdeer": {
     "bin": "tldr",
     "build_args": "--release",
