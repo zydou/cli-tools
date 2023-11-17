@@ -13,5 +13,10 @@
   "hoard": "09854c20731897430ff3ae2fe5fc0c785e2cc10b",
   "tickrs": "8a04f5411adf72fc08146eab0632765f1002e9e6",
   "gitui": "25cdc198d21f8ea4dc7141ff7e3c16e223aebbc8",
-  "onefetch": "3186493e3923ede65857e6ba4d2f8390388f532b"
+  "onefetch": "3186493e3923ede65857e6ba4d2f8390388f532b",
+  "musl": "f314e133929b6379eccc632bef32eaebb66a7335",
+  "libevent": "cfb2b89a1d0642abd6389913e237f49c662502e4",
+  "ncurses": "87c2c84cbd2332d6d94b12a1dcaf12ad1a51a938",
+  "tmux": "bdf8e614af34ba1eaa8243d3a818c8546cb21812",
+  "upx": "v4.2.1"
 }
