@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -x
 
 ROOT="$(pwd)"
 PATH="$HOME/.cargo/bin:$PATH"
