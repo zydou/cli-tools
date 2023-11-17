@@ -20,5 +20,6 @@
   "tmux": "bdf8e614af34ba1eaa8243d3a818c8546cb21812",
   "upx": "v4.2.1",
   "broot": "996b34fb5cb2dfafe87269ee97b895b4e09bf937",
-  "tree_sitter": "0ff28346be3d27f935d7cde8bbdf6b621c268e1a"
+  "tree_sitter": "0ff28346be3d27f935d7cde8bbdf6b621c268e1a",
+  "macchina": "f974469ec863952aa5b4ae2134029d1fa48294fb"
 }
