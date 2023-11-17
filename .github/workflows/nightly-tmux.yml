@@ -165,5 +165,8 @@ jobs:
           git config --global user.email 23291546+zydou@users.noreply.github.com
           git config pull.rebase false
           git add manifest.json
-          git commit -m "chore: update ${{env.name}} to ${TMUX_REF:0:7}"
+          git commit -m "chore: update ${{env.name}} to ${TMUX_REF:0:7}" || export NO_UPDATES=true
+          if [ "$NO_UPDATES" != "true" ]; then
+          echo "push to manifest"
           git push --force
+          fi
