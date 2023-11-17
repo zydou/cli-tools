@@ -87,8 +87,9 @@ jobs:
           NAME: ${{ matrix.name }}
           REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
         run: |
+          KEY_NAME="${NAME//-/_}"  # replace - with _
           cd manifest-new
-          jq '.${{ matrix.name }} = "${{ steps.check.outputs.remote_ref }}"' manifest.json > temp.json && mv -fv temp.json manifest.json
+          jq ".$KEY_NAME = \"${{ steps.check.outputs.remote_ref }}\"" manifest.json > temp.json && mv -fv temp.json manifest.json
           cat manifest.json
           git config --global user.name zydou
           git config --global user.email 23291546+zydou@users.noreply.github.com
