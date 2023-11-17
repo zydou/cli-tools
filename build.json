@@ -5,7 +5,7 @@
     "dua": {"bin": "dua", "upstream": "Byron/dua-cli", "build_args": "--release --locked"},
     "fd": {"bin": "fd", "upstream": "sharkdp/fd", "build_args": "--release --locked"},
     "gitui": {"bin": "gitui", "upstream": "extrawurst/gitui", "build_args": "--release --locked"},
-    "hoard": {"bin": "hoard", "upstream": "Hyde46/hoard", "build_args": "--release --locked"},
+    "hoard": {"bin": "hoard", "upstream": "Hyde46/hoard", "build_args": "--release"},
     "igrep": {"bin": "ig", "upstream": "konradsz/igrep", "build_args": "--release --locked"},
     "joshuto": {"bin": "joshuto", "upstream": "kamiyaa/joshuto", "build_args": "--release --locked"},
     "onefetch": {"bin": "onefetch", "upstream": "o2sh/onefetch", "build_args": "--release --locked"},

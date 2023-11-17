@@ -10,11 +10,6 @@ on:
         description: tool name
         default: bat
         type: string
-      upstream:
-        required: true
-        description: github repo of upstream
-        default: sharkdp/bat
-        type: string
       tag:
         required: true
         description: repo tag
@@ -45,11 +40,26 @@ jobs:
       CARGO: cargo
       RUST_BACKTRACE: 1
     steps:
+      - uses: actions/checkout@main
+      - name: set meta data
+        id: meta
+        env:
+          NAME: ${{inputs.name}}
+        run: |
+          KEY_NAME="${NAME//-/_}"  # replace - with _
+          BUILD_ARGS=$(jq -r ".$KEY_NAME.build_args" build.json)
+          BIN_NAME=$(jq -r ".$KEY_NAME.bin" build.json)
+          UPSTREAM=$(jq -r ".$KEY_NAME.upstream" build.json)
+          echo "build_args=$BUILD_ARGS" >> "$GITHUB_OUTPUT"
+          echo "bin_name=$BIN_NAME" >> "$GITHUB_OUTPUT"
+          echo "upstream=$UPSTREAM" >> "$GITHUB_OUTPUT"
+
       - name: Checkout upstream
         uses: actions/checkout@main
         with:
-          repository: ${{inputs.upstream}}
+          repository: ${{steps.meta.outputs.upstream}}
           ref: ${{inputs.tag}}
+          path: upstream
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -75,36 +85,29 @@ jobs:
           strip = true
           EOF
 
-      - uses: actions/checkout@main
-        name: Checkout main branch
-        with:
-          path: self
-
-      - name: set meta data
-        id: meta
-        env:
-          NAME: ${{matrix.name}}
+      # https://github.com/sfackler/rust-openssl/issues/603
+      - name: Apply openssl path
+        if: inputs.name == 'hoard'
         run: |
-          KEY_NAME="${NAME//-/_}"  # replace - with _
-          BUILD_ARGS=$(jq -r ".$KEY_NAME.build_args" self/build.json)
-          BIN_NAME=$(jq -r ".$KEY_NAME.bin" self/build.json)
-          echo "build_args=$BUILD_ARGS" >> "$GITHUB_OUTPUT"
-          echo "bin_name=$BIN_NAME" >> "$GITHUB_OUTPUT"
-          rm -rf self
+          cd upstream
+          git apply ../hoard/openssl.patch
 
       - name: Build release binary
         run: |-
+          cd upstream
           eval "${{ env.CARGO }} build ${{ steps.meta.outputs.build_args }} --target ${{ matrix.target }}"
 
       - name: Upload ${{matrix.target}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BIN_NAME: ${{ steps.meta.outputs.bin_name }}
+          UPSTREAM: ${{ steps.meta.outputs.upstream }}
           TAG: ${{inputs.tag}}
         run: |-
+          cd upstream
           mv "target/${{ matrix.target }}/release/$BIN_NAME" "$BIN_NAME"
           tar -cJf "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" "$BIN_NAME"
-          gh release create "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/${{inputs.upstream}}/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
-          gh release edit "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/${{inputs.upstream}}/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
+          gh release create "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
+          gh release edit "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
           gh release delete-asset "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
           gh release upload "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
