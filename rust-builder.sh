@@ -104,16 +104,27 @@ create_cargo_config
 clone_repo
 
 if [ "$(uname -s)" = "Linux" ]; then
-    [ "$TARGET_X86_64_LINUX_GNU" = "true" ] && build_target x86_64-unknown-linux-gnu
+    if [ "$TARGET_X86_64_LINUX_GNU" = "true" ]; then
+        build_target x86_64-unknown-linux-gnu
+    fi
 
-    [ "$TARGET_X86_64_LINUX_MUSL" = "true" ] && build_target x86_64-unknown-linux-musl
+    if [ "$TARGET_X86_64_LINUX_MUSL" = "true" ]; then
+        build_target x86_64-unknown-linux-musl
+    fi
 
-    [ "$TARGET_AARCH64_LINUX_GNU" = "true" ] && build_target aarch64-unknown-linux-gnu
+    if [ "$TARGET_AARCH64_LINUX_GNU" = "true" ]; then
+        build_target aarch64-unknown-linux-gnu
+    fi
 
-    [ "$TARGET_AARCH64_LINUX_MUSL" = "true" ] && build_target aarch64-unknown-linux-musl
-
+    if [ "$TARGET_AARCH64_LINUX_MUSL" = "true" ]; then
+        build_target aarch64-unknown-linux-musl
+    fi
 else
-    [ "$TARGET_X86_64_DARWIN" = "true" ] &&  build_target x86_64-apple-darwin
+    if [ "$TARGET_X86_64_DARWIN" = "true" ]; then
+        build_target x86_64-apple-darwin
+    fi
 
-    [ "$TARGET_AARCH64_DARWIN" = "true" ] &&  build_target aarch64-apple-darwin
+    if [ "$TARGET_AARCH64_DARWIN" = "true" ]; then
+        build_target aarch64-apple-darwin
+    fi
 fi
