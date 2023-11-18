@@ -240,5 +240,16 @@
     "target_x86_64_linux_gnu": "true",
     "target_x86_64_linux_musl": "true",
     "upstream": "atanunq/viu"
+  },
+  "xplr": {
+    "bin": "xplr",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": "true",
+    "target_aarch64_linux_gnu": "true",
+    "target_aarch64_linux_musl": "false",
+    "target_x86_64_darwin": "true",
+    "target_x86_64_linux_gnu": "true",
+    "target_x86_64_linux_musl": "true",
+    "upstream": "sayanarijit/xplr"
   }
 }
