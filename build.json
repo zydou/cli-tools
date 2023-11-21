@@ -76,6 +76,17 @@
     "target_x86_64_linux_musl": "true",
     "upstream": "extrawurst/gitui"
   },
+  "gping": {
+    "bin": "gping",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": "true",
+    "target_aarch64_linux_gnu": "true",
+    "target_aarch64_linux_musl": "true",
+    "target_x86_64_darwin": "true",
+    "target_x86_64_linux_gnu": "true",
+    "target_x86_64_linux_musl": "true",
+    "upstream": "orf/gping"
+  },
   "hoard": {
     "bin": "hoard",
     "build_args": "--release",
