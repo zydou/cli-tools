@@ -155,7 +155,7 @@
   },
   "ripgrep": {
     "bin": "rg",
-    "build_args": "--release --locked",
+    "build_args": "--release --locked --features pcre2",
     "target_aarch64_darwin": "true",
     "target_aarch64_linux_gnu": "true",
     "target_aarch64_linux_musl": "true",

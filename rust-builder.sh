@@ -66,26 +66,45 @@ function release_target() {
     gh release upload "$NAME" "$NAME-$TARGET.tar.xz" --repo "$REPO"
 }
 
+function pre_build_global() {
+    # pre-build step runs only once
+    cd "$GITDIR"
+
+    # tweaks for individual tools
+    if [[ "$NAME" = "hoard" && -f "$ROOT/hoard/openssl.patch" ]]; then
+        git apply "$ROOT/hoard/openssl.patch"
+    fi
+}
+
 function pre_build_steps() {
+    # pre-build step runs for each target
     local TARGET=$1
     cd "$GITDIR"
+
     # install target toolchain if not use cross
     if [ "$USE_CROSS" = "false" ]; then
         rustup target add "$TARGET"
     fi
 
-    # tweaks for individual tools
-    if [ "$NAME" = "hoard" ]; then
-        git apply "$ROOT/hoard/openssl.patch"
-    elif [ "$NAME" = "tealdeer" ]; then
+    if [[ "$NAME" = "tealdeer" && -f "Cargo.lock" ]]; then
         rm -f Cargo.lock
+    elif [[ "$NAME" = "ripgrep" && -f "Cross.toml" ]]; then
+        rm -f Cross.toml
     fi
 }
 
+function post_build_global() {
+    # post-build step runs only once
+    cd "$GITDIR"
+}
+
 function post_build_steps() {
+    # post-build step runs for each target
     local TARGET=$1
     cd "$GITDIR"
-    rm -rf "$GITDIR/target"
+    if [ -d "$GITDIR/target" ]; then
+        rm -rf "$GITDIR/target"
+    fi
 }
 
 function build_target() {
@@ -102,6 +121,7 @@ init_var
 install_cross
 create_cargo_config
 clone_repo
+pre_build_global
 
 if [ "$(uname -s)" = "Linux" ]; then
     if [ "$TARGET_X86_64_LINUX_GNU" = "true" ]; then
@@ -128,3 +148,5 @@ else
         build_target aarch64-apple-darwin
     fi
 fi
+
+post_build_global
