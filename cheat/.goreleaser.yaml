@@ -1,0 +1,62 @@
+---
+version: 1
+
+before:
+  hooks:
+    - rm -f ./cmd/cheat/str_config.go
+    - rm -f ./cmd/cheat/str_usage.go
+    - go generate ./cmd/cheat
+    - go mod vendor
+    - go mod tidy
+    - go mod verify
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/cheat
+    goos:
+      - linux
+      - openbsd
+      - netbsd
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+      - ppc64le
+      - ppc64
+      - mips64le
+      - mips64
+      - mipsle
+      - mips
+      - s390x
+    goarm:
+      - "5"
+      - "6"
+      - "7"
+    goamd64:
+      - v1
+      - v2
+      - v3
+      - v4
+    gomips:
+      - hardfloat
+      - softfloat
+    flags:
+      - -mod
+      - vendor
+      - -trimpath
+archives:
+  - format: tar.xz
+    # only binary, do not include any additional files
+    files:
+      - not-exists*
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- .Os }}-
+      {{- .Arch }}
+      {{- with .Arm }}v{{ . }}{{ end }}
+      {{- with .Mips }}-{{ . }}{{ end }}
+      {{- if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}

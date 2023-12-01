@@ -32,6 +32,18 @@
     "target_x86_64_linux_musl": "true",
     "upstream": "Canop/broot"
   },
+  "cheat": {
+    "bin": "cheat",
+    "goversion": "~1.19",
+    "ldflags": "-s -w",
+    "upstream": "cheat/cheat"
+  },
+  "cointop": {
+    "bin": "cointop",
+    "goversion": "~1.18",
+    "ldflags": "-s -w -X github.com/cointop-sh/cointop/cointop.version={{incpatch .Tag}}",
+    "upstream": "cointop-sh/cointop"
+  },
   "diskonaut": {
     "bin": "diskonaut",
     "build_args": "--release --locked",
