@@ -92,6 +92,30 @@ jobs:
           cd upstream
           git apply ../hoard/openssl.patch
 
+      - name: Hooks for bore
+        if: inputs.name == 'bore'
+        run: |
+          cd upstream
+          if [ -f "Cargo.lock" ]; then
+          rm -f Cargo.lock
+          fi
+
+      - name: Hooks for ripgrep
+        if: inputs.name == 'ripgrep'
+        run: |
+          cd upstream
+          if [ -f "Cross.toml" ]; then
+          rm -f Cross.toml
+          fi
+
+      - name: Hooks for tealdeer
+        if: inputs.name == 'tealdeer'
+        run: |
+          cd upstream
+          if [ -f "Cargo.lock" ]; then
+          rm -f Cargo.lock
+          fi
+
       - name: Build release binary
         run: |-
           cd upstream
