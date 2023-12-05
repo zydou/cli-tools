@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [cheat, cointop]
+        name: [cheat, cointop, ticker]
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     steps:

@@ -253,6 +253,12 @@
     "target_x86_64_linux_musl": "true",
     "upstream": "dbrgn/tealdeer"
   },
+  "ticker": {
+    "bin": "ticker",
+    "goversion": "~1.18",
+    "ldflags": "-s -w -X github.com/achannarasappa/ticker/cmd.Version={{incpatch .Tag}}",
+    "upstream": "achannarasappa/ticker"
+  },
   "tickrs": {
     "bin": "tickrs",
     "build_args": "--release --locked",
