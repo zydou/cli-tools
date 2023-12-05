@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        name: [bandwhich, bat, broot, diskonaut, dua, fd, gitui, gping, hoard, igrep, joshuto, macchina, onefetch, repgrep, ripgrep, skim, stylua, tailspin, tealdeer, tickrs, tokei, tree-sitter, viu, xplr]
+        name: [atuin, bandwhich, bat, broot, diskonaut, dua, fd, gitui, gping, hoard, igrep, joshuto, macchina, onefetch, repgrep, ripgrep, skim, stylua, tailspin, tealdeer, tickrs, tokei, tree-sitter, viu, xplr]
     name: ${{ matrix.name }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
