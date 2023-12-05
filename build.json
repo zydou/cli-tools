@@ -32,6 +32,17 @@
     "target_x86_64_linux_musl": "true",
     "upstream": "sharkdp/bat"
   },
+  "bore": {
+    "bin": "bore",
+    "build_args": "--release",
+    "target_aarch64_darwin": "true",
+    "target_aarch64_linux_gnu": "true",
+    "target_aarch64_linux_musl": "true",
+    "target_x86_64_darwin": "true",
+    "target_x86_64_linux_gnu": "true",
+    "target_x86_64_linux_musl": "true",
+    "upstream": "ekzhang/bore"
+  },
   "broot": {
     "bin": "broot",
     "build_args": "--release --locked",

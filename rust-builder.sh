@@ -86,10 +86,16 @@ function pre_build_steps() {
         rustup target add "$TARGET"
     fi
 
+    if [[ "$NAME" = "bore" && -f "Cargo.lock" ]]; then
+        rm -f Cargo.lock
+    fi
+
+    if [[ "$NAME" = "ripgrep" && -f "Cross.toml" ]]; then
+        rm -f Cross.toml
+    fi
+
     if [[ "$NAME" = "tealdeer" && -f "Cargo.lock" ]]; then
         rm -f Cargo.lock
-    elif [[ "$NAME" = "ripgrep" && -f "Cross.toml" ]]; then
-        rm -f Cross.toml
     fi
 }
 
