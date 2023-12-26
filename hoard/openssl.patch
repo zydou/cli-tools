@@ -1,12 +1,12 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index db3a222..4c14bea 100644
+index 7ea797a..76cb288 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -57,6 +57,7 @@ base64 = "0.21.2"
- chatgpt_blocking_rs = "0.1.1"
+@@ -59,6 +59,7 @@ chatgpt_blocking_rs = "0.1.1"
  dotenv = "0.15.0"
  h2 = "0.3.20"
+ regex = "1.10.2"
 +openssl = { version = "0.10", features = ["vendored"] }
- 
+
  [dev-dependencies]
  tempfile = "3.3.0"
