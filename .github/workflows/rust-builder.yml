@@ -128,10 +128,13 @@ jobs:
           UPSTREAM: ${{ steps.meta.outputs.upstream }}
           TAG: ${{inputs.tag}}
         run: |-
+          TAG="${TAG#$BIN_NAME}"  # bin_name-vX.Y.Z -> -vX.Y.Z
+          TAG="${TAG#-}"  # -vX.Y.Z -> vX.Y.Z
+          TAG="${TAG#v}"  # vX.Y.Z -> X.Y.Z
           cd upstream
           mv "target/${{ matrix.target }}/release/$BIN_NAME" "$BIN_NAME"
-          tar -cJf "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" "$BIN_NAME"
-          gh release create "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
-          gh release edit "${{inputs.name}}-v${TAG#v}" --notes "Build ${{inputs.name}} v${TAG#v} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG#v}" --repo "${{github.repository}}" || true
-          gh release delete-asset "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
-          gh release upload "${{inputs.name}}-v${TAG#v}" "${{inputs.name}}-v${TAG#v}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
+          tar -cJf "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" "$BIN_NAME"
+          gh release create "${{inputs.name}}-v${TAG}" --notes "Build ${{inputs.name}} v${TAG} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG}" --repo "${{github.repository}}" || true
+          gh release edit "${{inputs.name}}-v${TAG}" --notes "Build ${{inputs.name}} v${TAG} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG}" --repo "${{github.repository}}" || true
+          gh release delete-asset "${{inputs.name}}-v${TAG}" "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
+          gh release upload "${{inputs.name}}-v${TAG}" "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
