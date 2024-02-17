@@ -20,7 +20,7 @@
   "tmux": "608d113486835515e7a89b1511704440c68ae817",
   "upx": "v4.2.2",
   "broot": "3072166207f3730be2c4f6239a197a62b414affa",
-  "tree_sitter": "464dbef7941cd1b1d2f06f89d79fbcc3acafc4ef",
+  "tree_sitter": "15e6cd1c351b35d7952baa171ff0a09c37c7dde1",
   "macchina": "a10f908dc02dc4b668ee96b43c666b6b05a63698",
   "tealdeer": "17c08f026180204a47d7a1914c36de61e94ff991",
   "tokei": "5f755db185937b33f38a30e7f6facfa5be0f146a",
