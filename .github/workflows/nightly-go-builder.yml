@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/checkout@main
         with:
-          ref: manifest
+          ref: ubuntu-latest
           path: manifest
 
       - name: get build info
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/checkout@main
         if: steps.meta.outputs.trigger == 'true'
         with:
-          ref: manifest
+          ref: ubuntu-latest
           path: manifest-new
       - name: update manifest
         if: steps.meta.outputs.trigger == 'true'

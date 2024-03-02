@@ -36,15 +36,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ! gh api /repos/${{github.repository}}/branches/manifest > /dev/null 2>&1; then
+          if ! gh api /repos/${{github.repository}}/branches/ubuntu-latest > /dev/null 2>&1; then
           git config --global user.email 23291546+zydou@users.noreply.github.com
           git config --global user.name ${{github.actor}}
-          git checkout --orphan manifest
+          git checkout --orphan ubuntu-latest
           git rm -rf .
           echo "{}" > manifest.json
           git add manifest.json
           git commit --allow-empty -m "chore: create manifest"
-          git push origin manifest
+          git push origin ubuntu-latest
           fi
       - name: set meta info
         env:
@@ -58,7 +58,7 @@ jobs:
           echo "upx_ref=$(gh api /repos/upx/upx/tags --jq '.[0].name')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@main
         with:
-          ref: manifest
+          ref: ubuntu-latest
           path: manifest
       - name: check if we need to trigger a build
         id: trigger-check
@@ -146,7 +146,7 @@ jobs:
     steps:
       - uses: actions/checkout@main
         with:
-          ref: manifest
+          ref: ubuntu-latest
       - name: update manifest
         env:
           TMUX_REF: ${{ needs.filter.outputs.tmux_ref }}

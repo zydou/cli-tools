@@ -32,21 +32,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
-          if ! gh api /repos/${{github.repository}}/branches/manifest > /dev/null 2>&1; then
+          if ! gh api /repos/${{github.repository}}/branches/${{ matrix.os }} > /dev/null 2>&1; then
           git config --global user.name zydou
           git config --global user.email 23291546+zydou@users.noreply.github.com
-          git checkout --orphan manifest
+          git checkout --orphan ${{ matrix.os }}
           git rm -rf .
           echo "{}" > manifest.json
           git add manifest.json
           git commit --allow-empty -m "chore: create manifest"
-          git push origin manifest
+          git push origin ${{ matrix.os }}
           git checkout main
           fi
 
       - uses: actions/checkout@main
         with:
-          ref: manifest
+          ref: ${{ matrix.os }}
           path: manifest
 
       - name: check if we need to trigger a build
@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@main
         if: steps.check.outputs.trigger == 'true'
         with:
-          ref: manifest
+          ref: ${{ matrix.os }}
           path: manifest-new
 
       - name: update manifest
