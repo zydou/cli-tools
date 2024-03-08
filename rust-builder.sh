@@ -41,6 +41,10 @@ mkdir -p "$HOME/.cargo"
 cat > "$HOME/.cargo/config.toml" <<EOF
 [profile.release]
 strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
 EOF
 }
 
@@ -57,13 +61,11 @@ function release_target() {
 
     gh release create "$NAME-${REMOTE_REF:0:7}" --prerelease --notes "Nightly build $NAME based on https://github.com/$UPSTREAM/tree/$REMOTE_REF" --title "$NAME-${REMOTE_REF:0:7}" --repo "$REPO" || true
     gh release edit "$NAME-${REMOTE_REF:0:7}" --prerelease --notes "Nightly build $NAME based on https://github.com/$UPSTREAM/tree/$REMOTE_REF" --title "$NAME-${REMOTE_REF:0:7}" --repo "$REPO" || true
-    gh release delete-asset "$NAME-${REMOTE_REF:0:7}" "$NAME-$TARGET.tar.xz" --yes --repo "$REPO" || true
-    gh release upload "$NAME-${REMOTE_REF:0:7}" "$NAME-$TARGET.tar.xz" --repo "$REPO"
+    gh release upload "$NAME-${REMOTE_REF:0:7}" "$NAME-$TARGET.tar.xz" --clobber --repo "$REPO"
 
     gh release create "$NAME" --prerelease --notes "Nightly build $NAME based on https://github.com/$UPSTREAM/tree/$REMOTE_REF" --title "$NAME" --repo "$REPO" || true
     gh release edit "$NAME" --prerelease --notes "Nightly build $NAME based on https://github.com/$UPSTREAM/tree/$REMOTE_REF" --title "$NAME" --repo "$REPO" || true
-    gh release delete-asset "$NAME" "$NAME-$TARGET.tar.xz" --yes --repo "$REPO" || true
-    gh release upload "$NAME" "$NAME-$TARGET.tar.xz" --repo "$REPO"
+    gh release upload "$NAME" "$NAME-$TARGET.tar.xz" --clobber --repo "$REPO"
 }
 
 function pre_build_global() {

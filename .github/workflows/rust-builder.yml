@@ -136,5 +136,4 @@ jobs:
           tar -cJf "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" "$BIN_NAME"
           gh release create "${{inputs.name}}-v${TAG}" --notes "Build ${{inputs.name}} v${TAG} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG}" --repo "${{github.repository}}" || true
           gh release edit "${{inputs.name}}-v${TAG}" --notes "Build ${{inputs.name}} v${TAG} based on https://github.com/$UPSTREAM/tree/$TAG" --title "${{inputs.name}}-v${TAG}" --repo "${{github.repository}}" || true
-          gh release delete-asset "${{inputs.name}}-v${TAG}" "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" --yes --repo "${{github.repository}}" || true
-          gh release upload "${{inputs.name}}-v${TAG}" "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" --repo "${{github.repository}}"
+          gh release upload "${{inputs.name}}-v${TAG}" "${{inputs.name}}-v${TAG}-${{matrix.target}}.tar.xz" --clobber --repo "${{github.repository}}"
