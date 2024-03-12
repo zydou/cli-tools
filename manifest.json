@@ -15,7 +15,7 @@
   "gitui": "21810a4df6e115ea5b977c6a3d8aa399a5eecff1",
   "onefetch": "3c97dafccf6a855a5b8c243ae9582778b6a60be4",
   "musl": "7ada6dde6f9dc6a2836c3d92c2f762d35fd229e0",
-  "libevent": "b9e1fe74e724a3f1524904b4658b9a4acdea50f5",
+  "libevent": "4fd07f0ee82eb89337b4e369864e9cedae8a116c",
   "ncurses": "87c2c84cbd2332d6d94b12a1dcaf12ad1a51a938",
   "tmux": "b54e1fc4f73b34f3f9c671289fef8cbbc7771d9c",
   "upx": "v4.2.2",
