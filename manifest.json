@@ -17,7 +17,7 @@
   "musl": "7ada6dde6f9dc6a2836c3d92c2f762d35fd229e0",
   "libevent": "4fd07f0ee82eb89337b4e369864e9cedae8a116c",
   "ncurses": "87c2c84cbd2332d6d94b12a1dcaf12ad1a51a938",
-  "tmux": "3c3643f580ca718a5f6bbeea81abeb0a8bbdb131",
+  "tmux": "fc204bb5e5e6ef4e48f6d6d2b087d2881ad9cf6e",
   "upx": "v4.2.2",
   "broot": "df315d6b11a74b289c5276e741b854c0d47738ae",
   "tree_sitter": "0fc92c9a7d0ddb417bd74bf7f533bb8f3042dbe3",
