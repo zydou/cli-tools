@@ -1,4 +1,15 @@
 {
+  "arti": {
+    "bin": "arti",
+    "build_args": "--release --locked -p arti --features static",
+    "target_aarch64_darwin": "true",
+    "target_aarch64_linux_gnu": "true",
+    "target_aarch64_linux_musl": "true",
+    "target_x86_64_darwin": "true",
+    "target_x86_64_linux_gnu": "true",
+    "target_x86_64_linux_musl": "true",
+    "upstream": "zydou/arti"
+  },
   "atuin": {
     "bin": "atuin",
     "build_args": "--release --locked",
