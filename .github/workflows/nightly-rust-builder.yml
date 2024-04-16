@@ -73,6 +73,7 @@ jobs:
           REPO: ${{ github.repository }}
           REMOTE_REF: ${{ steps.check.outputs.remote_ref }}
         run: |
+          rustup update
           bash rust-builder.sh
 
       # checkout manifest self again, because the previous manifest maybe freshed by other builds

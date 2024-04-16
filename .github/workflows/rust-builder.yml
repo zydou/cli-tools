@@ -119,6 +119,7 @@ jobs:
       - name: Build release binary
         run: |-
           cd upstream
+          rustup update
           eval "${{ env.CARGO }} build ${{ steps.meta.outputs.build_args }} --target ${{ matrix.target }}"
 
       - name: Upload ${{matrix.target}}
