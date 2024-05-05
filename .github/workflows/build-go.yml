@@ -1,0 +1,110 @@
+---
+name: Build Go
+run-name: ${{inputs.name}}-${{inputs.ref}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        required: true
+        description: tool name
+        default: bat
+        type: string
+      upstream:
+        required: true
+        description: upstream repo
+        default: sharkdp/bat
+        type: string
+      ref:
+        required: true
+        description: upstream repo ref
+        default: b4e3a84e1a6e68b2211bdebbbb0873f1d4aa2f8d
+        type: string
+      goversion:
+        required: true
+        description: minimum go version
+        default: ~1.18
+        type: string
+      ldflags:
+        required: true
+        description: go build ldflags
+        default: -s -w
+        type: string
+
+permissions: write-all
+concurrency:
+  group: ${{inputs.name}}-${{inputs.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ inputs.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - name: checkout upstream
+        uses: actions/checkout@main
+        with:
+          repository: ${{ inputs.upstream }}
+          path: upstream
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up Go
+        uses: actions/setup-go@main
+        with:
+          go-version: '${{ inputs.goversion }}'
+          cache-dependency-path: upstream/go.sum
+
+      - uses: goreleaser/goreleaser-action@master
+        with:
+          install-only: true
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            ~/.local/bin/dasel
+          key: ${{ runner.os }}-dasel
+
+      - name: Install dasel
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          if [ ! -x "$HOME/.local/bin/dasel" ]; then
+          mkdir -p "$HOME/.local/bin"
+          curl -o "$HOME/.local/bin/dasel" -sSLf https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64
+          chmod +x "$HOME/.local/bin/dasel"
+          fi
+
+      - name: generate .goreleaser.yaml
+        run: |
+          if [ -f "upstream/.goreleaser.yml" ]; then
+          rm -f upstream/.goreleaser.yml
+          fi
+          cp -f "${{inputs.name}}/.goreleaser.yaml" "upstream/.goreleaser.yaml"
+          dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "project_name"
+          dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "builds.[0].binary"
+          dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.ldflags}}" "builds.[0].ldflags"
+          cat "upstream/.goreleaser.yaml"
+
+      - name: build
+        env:
+          REMOTE_REF: ${{ inputs.ref }}
+        run: |
+          cd upstream
+          goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
+          echo "date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "short_ref=${REMOTE_REF:0:7}" >> $GITHUB_ENV
+
+      - uses: ncipollo/release-action@main
+        with:
+          allowUpdates: true
+          prerelease: true
+          artifacts: upstream/dist/*.tar.xz
+          body: Build at ${{env.date}} based on [${{env.short_ref}}](https://github.com/${{inputs.upstream}}/tree/${{inputs.remote_ref}})
+          commit: ${{ github.sha }}
+          name: ${{inputs.name}}
+          tag: ${{inputs.name}}
+          replacesArtifacts: true
