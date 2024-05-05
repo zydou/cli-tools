@@ -1,0 +1,138 @@
+---
+name: Build Rust
+run-name: ${{inputs.name}}-${{inputs.target}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        required: true
+        description: tool name
+        default: bat
+        type: string
+      upstream:
+        required: true
+        description: upstream repo
+        default: sharkdp/bat
+        type: string
+      ref:
+        required: true
+        description: upstream repo ref
+        default: b4e3a84e1a6e68b2211bdebbbb0873f1d4aa2f8d
+        type: string
+      binary_name:
+        required: true
+        description: cli binary name
+        default: bat
+        type: string
+      target:
+        required: true
+        description: build target
+        default: x86_64-unknown-linux-gnu
+        type: choice
+        options:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - x86_64-apple-darwin
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - aarch64-apple-darwin
+      args:
+        required: true
+        description: rust build args
+        default: --release --locked
+        type: string
+      runner:
+        required: true
+        description: build runner os
+        default: ubuntu-latest
+        type: choice
+        options:
+          - ubuntu-latest
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - macos-latest  # M1
+          - macos-14  # M1
+          - macos-13
+          - macos-12
+      cross:
+        required: true
+        description: cross compile
+        default: true
+        type: boolean
+
+
+permissions: write-all
+concurrency:
+  group: ${{inputs.name}}-${{inputs.target}}-${{inputs.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ inputs.target }}
+    runs-on: ${{ inputs.runner }}
+    env:
+      CARGO: cargo
+      RUST_BACKTRACE: 1
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Checkout upstream
+        uses: actions/checkout@main
+        with:
+          repository: ${{ inputs.upstream }}
+          ref: ${{ inputs.ref }}
+          path: upstream
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: ${{ inputs.target }}
+
+      - name: Install Cross
+        if: ${{ inputs.cross }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall -y cross
+          echo "CARGO=cross" >> $GITHUB_ENV
+
+      - name: Set profile.release.strip = true
+        shell: bash
+        run: |
+          mkdir -p $HOME/.cargo
+          cat >> $HOME/.cargo/config.toml <<EOF
+          [profile.release]
+          strip = true
+          opt-level = "z"
+          lto = true
+          codegen-units = 1
+          panic = "abort"
+          EOF
+
+      # https://github.com/sfackler/rust-openssl/issues/603
+      - name: Apply openssl path
+        if: inputs.name == 'hoard'
+        run: |
+          cd upstream
+          git apply ../hoard/openssl.patch
+
+      - name: Build release binary
+        run: |-
+          cd upstream
+          rustup update
+          eval "${{ env.CARGO }} build ${{ inputs.args }} --target ${{ inputs.target }}"
+
+      - name: Upload ${{inputs.target}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          cd "$GITHUB_WORKSPACE/upstream/target/${{inputs.target}}/release"
+          tar -cJf "${{inputs.name}}-${{inputs.target}}.tar.xz" "${{inputs.binary_name}}"
+          mv "${{inputs.name}}-${{inputs.target}}.tar.xz" "$GITHUB_WORKSPACE/${{inputs.name}}-${{inputs.target}}.tar.xz"
+          cd "$GITHUB_WORKSPACE"
+          pip install requests
+          python uploader.py --name "${{inputs.name}}" --target "${{inputs.target}}" --ref "${{inputs.ref}}" --upstream "${{inputs.upstream}}" --path "${{inputs.name}}-${{inputs.target}}.tar.xz"
+
