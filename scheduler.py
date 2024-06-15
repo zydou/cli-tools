@@ -92,7 +92,7 @@ def build_rust(name: str, info: dict, remote_ref: str):
             },
         )
 
-    if info["target_aarch64_darwin"] and f"{name}-aarch64-apple-darwin.tar.xz" not in assets:
+    if info["target_aarch64_darwin"] and f"{name}-aarch64-apple-darwin-{remote_ref[:7]}.tar.xz" not in assets:
         gh.trigger_workflow(
             "build-rust",
             workflow_inputs
