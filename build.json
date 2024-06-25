@@ -203,6 +203,12 @@
     "target_x86_64_linux_musl": true,
     "upstream": "Hyde46/hoard"
   },
+  "httpstat": {
+    "type": "golang",
+    "goversion": "~1.20",
+    "ldflags": "-s -w",
+    "upstream": "davecheney/httpstat"
+  },
   "igrep": {
     "bin": "ig",
     "type": "rust",
