@@ -135,4 +135,3 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           pip install requests
           python uploader.py --name "${{inputs.name}}" --target "${{inputs.target}}" --ref "${{inputs.ref}}" --upstream "${{inputs.upstream}}" --path "${{inputs.name}}-${{inputs.target}}.tar.xz"
-
