@@ -130,7 +130,7 @@ def main():
     if f"{args.name}-{args.target}-{args.ref[:7]}.tar.xz" in assets:
         print(f"Skipping {file_path.name} as it already exists")
         return
-    delete_old_assets(assets)
+    # delete_old_assets(assets)
     gh.upload_asset(file_path, args.name, clean=False)
     new_path = file_path.with_name(f"{args.name}-{args.target}-{args.ref[:7]}.tar.xz")
     file_path.rename(new_path)
