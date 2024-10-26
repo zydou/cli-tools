@@ -52,6 +52,7 @@ class Github:
                 asset["name"]: {
                     "updated_at": asset["updated_at"],
                     "id": asset["id"],
+                    "download_count": asset["download_count"],
                 }
                 for asset in release["assets"]
             }
@@ -95,34 +96,38 @@ class Github:
             path.unlink(missing_ok=True)
 
 
-def delete_old_assets(assets: dict):
+def delete_old_assets(assets: dict, keep_days: int = 1):
     """Delete old assets.
 
-    Assets matching ALL of the following criteria will be deleted:
+    Assets match ALL of the following criteria will be keeped:
 
-    1. older than 3 months
-    2. not the last 2 assets
+    1. newly updated in keep_days days
+    2. download count >= 2
 
     Args:
         assets (dict): assets to filter
+        keep_days (int, optional): days to keep. Defaults to 1.
     """
-    assets = dict(sorted(assets.items(), key=lambda x: x[1]["updated_at"], reverse=False))
     assets_without_nightly = {k: v for k, v in assets.items() if len(k.split("-")[-1]) == 14}  # end with "ref[:7].tar.xz"
-    commits = []
-    for name in assets_without_nightly:
-        if name.removesuffix(".tar.xz").split("-")[-1] not in commits:
-            commits.append(name.removesuffix(".tar.xz").split("-")[-1])
-    last_2_commits = commits[-2:]
+
+    # filter out the commits need to keep
+    keep_commits = set()
     for asset_name, info in assets_without_nightly.items():
         commit = asset_name.removesuffix(".tar.xz").split("-")[-1]
-        if commit in last_2_commits:
+        if commit in keep_commits:
             continue
         updated_time = datetime.strptime(info["updated_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=ZoneInfo("UTC"))
-        three_months_ago = datetime.now(ZoneInfo("UTC")) - timedelta(days=90)
-        if updated_time < three_months_ago:
+        cut_time = datetime.now(ZoneInfo("UTC")) - timedelta(days=keep_days)
+        if updated_time >= cut_time or int(info['download_count']) >= 2:
+            print(f"Keeping {asset_name}: {updated_time:%Y-%m-%d} {info['download_count']=}")
+            keep_commits.add(commit)
+
+    # start delete
+    for asset_name, info in assets_without_nightly.items():
+        commit = asset_name.removesuffix(".tar.xz").split("-")[-1]
+        if commit not in keep_commits:
             print(f"Deleting {asset_name}")
             gh.delete_asset(info["id"])
-
 
 def main():
     file_path = Path(args.path)
@@ -130,7 +135,7 @@ def main():
     if f"{args.name}-{args.target}-{args.ref[:7]}.tar.xz" in assets:
         print(f"Skipping {file_path.name} as it already exists")
         return
-    # delete_old_assets(assets)
+    delete_old_assets(assets)
     gh.upload_asset(file_path, args.name, clean=False)
     new_path = file_path.with_name(f"{args.name}-{args.target}-{args.ref[:7]}.tar.xz")
     file_path.rename(new_path)
