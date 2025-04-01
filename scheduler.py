@@ -121,6 +121,8 @@ def main():
     with Path("build.json").open() as f:
         build_info = json.load(f)
     for name, info in build_info.items():
+        if str(info.get("disabled", "")).lower() in ["1", "true"]:
+            continue
         print(f"Processing {name}")
         remote_ref = gh.get_head_commit(info["upstream"])
         if info.get("type") == "rust":

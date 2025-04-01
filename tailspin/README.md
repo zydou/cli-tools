@@ -1,6 +1,6 @@
 # tailspin
 
-A very fast implementation of tldr in Rust.
+A log file highlighter.
 
 Official repository: https://github.com/bensadeh/tailspin
 

@@ -330,6 +330,7 @@
     "upstream": "tamasfe/taplo"
   },
   "tealdeer": {
+    "disabled": true,
     "bin": "tldr",
     "type": "rust",
     "build_args": "--release",
