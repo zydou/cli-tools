@@ -49,12 +49,9 @@ on:
         type: choice
         options:
           - ubuntu-latest
-          - ubuntu-22.04
-          - ubuntu-20.04
-          - macos-latest  # M1
-          - macos-14  # M1
-          - macos-13
-          - macos-12
+          - macos-latest  # Arm64
+          - macos-26-intel
+          - macos-15-intel  # Intel
       cross:
         required: true
         description: cross compile

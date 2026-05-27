@@ -87,7 +87,7 @@ def build_rust(name: str, info: dict, remote_ref: str):
             workflow_inputs
             | {
                 "target": "x86_64-apple-darwin",
-                "runner": "macos-13",
+                "runner": "macos-15-intel",
                 "cross": False,
             },
         )
@@ -98,7 +98,7 @@ def build_rust(name: str, info: dict, remote_ref: str):
             workflow_inputs
             | {
                 "target": "aarch64-apple-darwin",
-                "runner": "macos-14",
+                "runner": "macos-latest",
                 "cross": False,
             },
         )
