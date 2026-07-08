@@ -1,5 +1,6 @@
 {
   "arti": {
+    "disabled": true,
     "bin": "arti",
     "type": "rust",
     "build_args": "--release --locked -p arti --features static",
@@ -12,6 +13,7 @@
     "upstream": "zydou/arti"
   },
   "atuin": {
+    "disabled": true,
     "bin": "atuin",
     "type": "rust",
     "build_args": "--release --locked",
@@ -24,6 +26,7 @@
     "upstream": "atuinsh/atuin"
   },
   "bandwhich": {
+    "disabled": true,
     "bin": "bandwhich",
     "type": "rust",
     "build_args": "--release --locked",
@@ -36,6 +39,7 @@
     "upstream": "imsnif/bandwhich"
   },
   "bat": {
+    "disabled": true,
     "bin": "bat",
     "type": "rust",
     "build_args": "--release --locked",
@@ -60,6 +64,7 @@
     "upstream": "ekzhang/bore"
   },
   "broot": {
+    "disabled": true,
     "bin": "broot",
     "type": "rust",
     "build_args": "--release",
@@ -72,6 +77,7 @@
     "upstream": "Canop/broot"
   },
   "bws": {
+    "disabled": true,
     "bin": "bws",
     "type": "rust",
     "build_args": "--release --locked -p bws",
@@ -84,12 +90,14 @@
     "upstream": "bitwarden/sdk"
   },
   "cheat": {
+    "disabled": true,
     "type": "golang",
     "goversion": "~1.19",
     "ldflags": "-s -w",
     "upstream": "cheat/cheat"
   },
   "cointop": {
+    "disabled": true,
     "type": "golang",
     "goversion": "~1.18",
     "ldflags": "-s -w -X github.com/cointop-sh/cointop/cointop.version={{incpatch .Tag}}",
@@ -108,6 +116,7 @@
     "upstream": "dandavison/delta"
   },
   "diskonaut": {
+    "disabled": true,
     "bin": "diskonaut",
     "type": "rust",
     "build_args": "--release --locked",
@@ -132,6 +141,7 @@
     "upstream": "Byron/dua-cli"
   },
   "dust": {
+    "disabled": true,
     "bin": "dust",
     "type": "rust",
     "build_args": "--release --locked",
@@ -144,6 +154,7 @@
     "upstream": "bootandy/dust"
   },
   "fclones": {
+    "disabled": true,
     "bin": "fclones",
     "type": "rust",
     "build_args": "--release --locked",
@@ -156,6 +167,7 @@
     "upstream": "pkolaczk/fclones"
   },
   "fd": {
+    "disabled": true,
     "bin": "fd",
     "type": "rust",
     "build_args": "--release --locked",
@@ -168,6 +180,7 @@
     "upstream": "sharkdp/fd"
   },
   "gitui": {
+    "disabled": true,
     "bin": "gitui",
     "type": "rust",
     "build_args": "--release --locked",
@@ -180,6 +193,7 @@
     "upstream": "extrawurst/gitui"
   },
   "gping": {
+    "disabled": true,
     "bin": "gping",
     "type": "rust",
     "build_args": "--release --locked",
@@ -192,6 +206,7 @@
     "upstream": "orf/gping"
   },
   "hoard": {
+    "disabled": true,
     "bin": "hoard",
     "type": "rust",
     "build_args": "--release",
@@ -204,6 +219,7 @@
     "upstream": "Hyde46/hoard"
   },
   "httpstat": {
+    "disabled": true,
     "type": "golang",
     "goversion": "~1.20",
     "ldflags": "-s -w",
@@ -222,6 +238,7 @@
     "upstream": "konradsz/igrep"
   },
   "joshuto": {
+    "disabled": true,
     "bin": "joshuto",
     "type": "rust",
     "build_args": "--release --locked",
@@ -270,6 +287,7 @@
     "upstream": "acheronfail/repgrep"
   },
   "ripgrep": {
+    "disabled": true,
     "bin": "rg",
     "type": "rust",
     "build_args": "--release --locked --features pcre2",
@@ -282,6 +300,7 @@
     "upstream": "BurntSushi/ripgrep"
   },
   "skim": {
+    "disabled": true,
     "bin": "sk",
     "type": "rust",
     "build_args": "--release --locked",
@@ -294,6 +313,7 @@
     "upstream": "lotabout/skim"
   },
   "stylua": {
+    "disabled": true,
     "bin": "stylua",
     "type": "rust",
     "build_args": "--release --locked --all-features",
@@ -306,6 +326,7 @@
     "upstream": "JohnnyMorganz/stylua"
   },
   "tailspin": {
+    "disabled": true,
     "bin": "tspin",
     "type": "rust",
     "build_args": "--release --locked",
@@ -355,12 +376,14 @@
     "upstream": "latex-lsp/texlab"
   },
   "ticker": {
+    "disabled": true,
     "type": "golang",
     "goversion": "~1.18",
     "ldflags": "-s -w -X github.com/achannarasappa/ticker/cmd.Version={{incpatch .Tag}}",
     "upstream": "achannarasappa/ticker"
   },
   "tickrs": {
+    "disabled": true,
     "bin": "tickrs",
     "type": "rust",
     "build_args": "--release --locked",
@@ -373,6 +396,7 @@
     "upstream": "tarkah/tickrs"
   },
   "tlrc": {
+    "disabled": true,
     "bin": "tldr",
     "type": "rust",
     "build_args": "--release --locked",
@@ -409,6 +433,7 @@
     "upstream": "tree-sitter/tree-sitter"
   },
   "viu": {
+    "disabled": true,
     "bin": "viu",
     "type": "rust",
     "build_args": "--release --locked",
@@ -421,6 +446,7 @@
     "upstream": "atanunq/viu"
   },
   "xplr": {
+    "disabled": true,
     "bin": "xplr",
     "type": "rust",
     "build_args": "--release --locked",
@@ -433,6 +459,7 @@
     "upstream": "sayanarijit/xplr"
   },
   "yazi": {
+    "disabled": true,
     "bin": "yazi",
     "type": "rust",
     "build_args": "--release --locked",
