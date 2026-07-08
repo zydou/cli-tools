@@ -116,6 +116,20 @@ jobs:
           cd upstream
           git apply ../hoard/openssl.patch
 
+      # tree-sitter enables rquickjs's `bindgen` feature, which runs
+      # bindgen+libclang at build time to generate QuickJS bindings.
+      # bindgen >= 0.71 requires clang >= 9, but the cross-rs images
+      # for x86_64-linux-gnu (clang 3.8), aarch64-linux-gnu (clang 3.8)
+      # and aarch64-linux-musl (clang 6.0) ship older libclang that
+      # lacks `clang_getTranslationUnitTargetInfo`, so the build fails.
+      # Drop the `bindgen` feature so rquickjs uses its bundled,
+      # pre-generated static bindings instead of generating them.
+      - name: Disable tree-sitter rquickjs bindgen
+        if: inputs.name == 'tree-sitter'
+        run: |
+          cd upstream
+          git apply ../tree-sitter/bindgen.patch
+
       - name: Build release binary
         run: |-
           cd upstream
