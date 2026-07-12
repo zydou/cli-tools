@@ -286,6 +286,18 @@
     "target_x86_64_linux_musl": true,
     "upstream": "acheronfail/repgrep"
   },
+  "ryl": {
+    "bin": "ryl",
+    "type": "rust",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": true,
+    "target_aarch64_linux_gnu": true,
+    "target_aarch64_linux_musl": true,
+    "target_x86_64_darwin": true,
+    "target_x86_64_linux_gnu": true,
+    "target_x86_64_linux_musl": true,
+    "upstream": "owenlamont/ryl"
+  },
   "ripgrep": {
     "disabled": true,
     "bin": "rg",
