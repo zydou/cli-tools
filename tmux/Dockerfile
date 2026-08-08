@@ -10,7 +10,7 @@ WORKDIR /app
 ARG MUSL_VERSION
 RUN mkdir -p "${HOME}/musl" && \
     cd "${HOME}/musl" && \
-    curl -sSLfk -o "musl-${MUSL_VERSION}.tar.gz" "https://github.com/bminor/musl/archive/refs/tags/${MUSL_VERSION}.tar.gz" && \
+    curl -sSLfk -o "musl-${MUSL_VERSION}.tar.gz" "https://github.com/zydou/musl/archive/refs/tags/${MUSL_VERSION}.tar.gz" && \
     tar --strip-components 1 -xzf "musl-${MUSL_VERSION}.tar.gz" && \
     ./configure --enable-gcc-wrapper --disable-shared --prefix="${HOME}" --bindir="${HOME}/bin" --includedir="${HOME}/include" --libdir="${HOME}/lib" && \
     make && \
