@@ -38,9 +38,11 @@ RUN mkdir -p "${HOME}/ncurses" && \
     cd "${HOME}/ncurses"  && \
     curl -sSLfk -o ncurses.tar.gz "https://ftp.gnu.org/gnu/ncurses/ncurses-${NCURSES_VERSION}.tar.gz"  && \
     tar --strip-components 1 -xzf ncurses.tar.gz  && \
-    ./configure --prefix="${HOME}" --includedir="${HOME}/include" --libdir="${HOME}/lib" --enable-pc-files --with-pkg-config="${HOME}/lib/pkgconfig" --with-pkg-config-libdir="${HOME}/lib/pkgconfig" --without-ada --without-tests --without-manpages --with-ticlib --with-termlib --with-ext-mouse --with-default-terminfo-dir=/usr/share/terminfo --with-terminfo-dirs=/etc/terminfo:/lib/terminfo:/usr/share/terminfo  && \
+    ./configure --prefix="${HOME}" --includedir="${HOME}/include/ncurses" --libdir="${HOME}/lib" --without-widec --without-cxx-binding --enable-pc-files --with-pkg-config="${HOME}/lib/pkgconfig" --with-pkg-config-libdir="${HOME}/lib/pkgconfig" --without-ada --without-tests --without-manpages --with-ticlib --with-termlib --with-ext-mouse --with-default-terminfo-dir="${HOME}/terminfo" --with-terminfo-dirs="${HOME}/terminfo"  && \
     make  && \
     make install  && \
+    ln -sf libncursesw.a "${HOME}/lib/libncurses.a" && \
+    ln -sf libtinfow.a "${HOME}/lib/libtinfo.a" && \
     cd "${HOME}"  && \
     rm -rf "${HOME}/ncurses"
 
