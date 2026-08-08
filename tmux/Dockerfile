@@ -10,7 +10,7 @@ WORKDIR /app
 ARG MUSL_VERSION
 RUN mkdir -p "${HOME}/musl" && \
     cd "${HOME}/musl" && \
-    curl -sSLfk -o "musl-${MUSL_VERSION}.tar.gz" "https://github.com/bminor/musl/archive/refs/tags/${MUSL_VERSION}.tar.gz" && \
+    curl -sSLfk -o "musl-${MUSL_VERSION}.tar.gz" "https://github.com/zydou/musl/archive/refs/tags/${MUSL_VERSION}.tar.gz" && \
     tar --strip-components 1 -xzf "musl-${MUSL_VERSION}.tar.gz" && \
     ./configure --enable-gcc-wrapper --disable-shared --prefix="${HOME}" --bindir="${HOME}/bin" --includedir="${HOME}/include" --libdir="${HOME}/lib" && \
     make && \
@@ -36,11 +36,13 @@ RUN mkdir -p "${HOME}/libevent" && \
 ARG NCURSES_VERSION
 RUN mkdir -p "${HOME}/ncurses" && \
     cd "${HOME}/ncurses"  && \
-    curl -sSLfk -o ncurses.tar.gz "https://github.com/mirror/ncurses/archive/refs/tags/${NCURSES_VERSION}.tar.gz"  && \
+    curl -sSLfk -o ncurses.tar.gz "https://ftp.gnu.org/gnu/ncurses/ncurses-${NCURSES_VERSION}.tar.gz"  && \
     tar --strip-components 1 -xzf ncurses.tar.gz  && \
-    ./configure --prefix="${HOME}" --includedir="${HOME}/include" --libdir="${HOME}/lib" --enable-pc-files --with-pkg-config="${HOME}/lib/pkgconfig" --with-pkg-config-libdir="${HOME}/lib/pkgconfig" --without-ada --without-tests --without-manpages --with-ticlib --with-termlib --with-default-terminfo-dir=/usr/share/terminfo --with-terminfo-dirs=/etc/terminfo:/lib/terminfo:/usr/share/terminfo  && \
+    ./configure --prefix="${HOME}" --includedir="${HOME}/include/ncurses" --libdir="${HOME}/lib" --enable-pc-files --with-pkg-config="${HOME}/lib/pkgconfig" --with-pkg-config-libdir="${HOME}/lib/pkgconfig" --without-ada --without-tests --without-manpages --with-ticlib --with-termlib --with-ext-mouse --with-default-terminfo-dir=/usr/share/terminfo --with-terminfo-dirs=/etc/terminfo:/lib/terminfo:/usr/share/terminfo  && \
     make  && \
     make install  && \
+    ln -sf libncursesw.a "${HOME}/lib/libncurses.a" && \
+    ln -sf libtinfow.a "${HOME}/lib/libtinfo.a" && \
     cd "${HOME}"  && \
     rm -rf "${HOME}/ncurses"
 

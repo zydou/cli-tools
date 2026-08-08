@@ -27,8 +27,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "musl=$(gh api /repos/bminor/musl/tags --jq '.[0].name')" >> $GITHUB_ENV
-          echo "ncurses=$(gh api /repos/mirror/ncurses/tags --jq '.[0].name')" >> $GITHUB_ENV
+          echo "musl=$(gh api /repos/zydou/musl/tags --jq '.[0].name')" >> $GITHUB_ENV
+          NCURSES_VERSION="$(curl -s https://ftp.gnu.org/gnu/ncurses/ | grep -oE 'ncurses-[0-9]+\.[0-9]+\.tar\.gz' | sed 's/ncurses-//;s/\.tar\.gz//' | sort -V | tail -1)"
+          if [ -z "$NCURSES_VERSION" ] || [ "$NCURSES_VERSION" \< "6.5" ]; then
+            echo "ERROR: Failed to find ncurses >= 6.5 (got: $NCURSES_VERSION)" >&2
+            exit 1
+          fi
+          echo "ncurses=$NCURSES_VERSION" >> $GITHUB_ENV
           echo "upx=$(gh api /repos/upx/upx/tags --jq '.[0].name')" >> $GITHUB_ENV
           LIBEVENT_VERSION="$(gh api /repos/libevent/libevent/releases/latest --jq .tag_name)"
           echo "libevent=${LIBEVENT_VERSION#release-}" >> $GITHUB_ENV
