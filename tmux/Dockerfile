@@ -52,7 +52,7 @@ RUN apt-get update && \
     cd "${HOME}/tmux" && \
     curl -sSLfk -o "tmux-${TMUX_VERSION}.tar.gz" "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/tmux-${TMUX_VERSION}.tar.gz" && \
     tar --strip-components 1 -xzf "tmux-${TMUX_VERSION}.tar.gz" && \
-    ./configure --prefix="${HOME}" --enable-static --includedir="${HOME}/include" --libdir="${HOME}/lib" CFLAGS="-I${HOME}/include" LDFLAGS="-L${HOME}/lib" CPPFLAGS="-I${HOME}/include" LIBEVENT_LIBS="-L${HOME}/lib -levent" LIBNCURSES_CFLAGS="-I${HOME}/include/ncurses" LIBNCURSES_LIBS="-L${HOME}/lib -lncurses" LIBTINFO_CFLAGS="-I${HOME}/include/ncurses" LIBTINFO_LIBS="-L${HOME}/lib -ltinfo" && \
+    ./configure --prefix="${HOME}" --enable-static --includedir="${HOME}/include" --libdir="${HOME}/lib" CFLAGS="-I${HOME}/include" LDFLAGS="-L${HOME}/lib" CPPFLAGS="-I${HOME}/include" LIBEVENT_LIBS="-L${HOME}/lib -levent" LIBNCURSES_CFLAGS="-I${HOME}/include/ncurses" LIBNCURSES_LIBS="-L${HOME}/lib -lncurses" LIBTINFO_CFLAGS="-I${HOME}/include/ncurses" LIBTINFO_LIBS="-L${HOME}/lib -ltinfo" LIBS="-lutil" && \
     make && \
     make install && \
     strip "${HOME}/bin/tmux" && \
