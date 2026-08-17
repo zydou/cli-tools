@@ -447,7 +447,7 @@
   "tree-sitter": {
     "bin": "tree-sitter",
     "type": "rust",
-    "build_args": "--release --locked",
+    "build_args": "--release",
     "target_aarch64_darwin": true,
     "target_aarch64_linux_gnu": true,
     "target_aarch64_linux_musl": true,
