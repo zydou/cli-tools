@@ -128,6 +128,12 @@ jobs:
       # Only applies to >= 0.26 (uses crates/generate/Cargo.toml); older
       # releases like 0.24.x use cli/generate/Cargo.toml without rquickjs,
       # so the patch does not apply there — skip it gracefully.
+      #
+      # `--locked` is omitted from tree-sitter's build_args (in build.json)
+      # because upstream's Cargo.lock is frequently out of sync with
+      # Cargo.toml on HEAD. Without --locked Cargo auto-updates the lock
+      # file, which is required on native macOS runners (no cross Docker
+      # image to paper over the mismatch).
       - name: Disable tree-sitter rquickjs bindgen
         if: inputs.name == 'tree-sitter'
         run: |
