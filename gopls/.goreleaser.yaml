@@ -14,7 +14,7 @@ builds:
       - arm64
 
 archives:
-  - format: tar.xz
+  - formats: [tar.xz]
     # only binary, do not include any additional files
     files:
       - not-exists*
