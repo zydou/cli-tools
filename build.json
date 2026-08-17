@@ -286,6 +286,18 @@
     "target_x86_64_linux_musl": true,
     "upstream": "acheronfail/repgrep"
   },
+  "rust-analyzer": {
+    "bin": "rust-analyzer",
+    "type": "rust",
+    "build_args": "--release --locked --manifest-path ./crates/rust-analyzer/Cargo.toml --bin rust-analyzer",
+    "target_aarch64_darwin": true,
+    "target_aarch64_linux_gnu": true,
+    "target_aarch64_linux_musl": true,
+    "target_x86_64_darwin": true,
+    "target_x86_64_linux_gnu": true,
+    "target_x86_64_linux_musl": true,
+    "upstream": "rust-lang/rust-analyzer"
+  },
   "ryl": {
     "bin": "ryl",
     "type": "rust",
