@@ -43,11 +43,11 @@ class Github:
         self.assets = {name: [asset["name"] for asset in release["assets"]] for name, release in self.releases.items()}
         return self.assets
 
-    def get_head_commit(self, repo: str | None = None) -> str:
+    def get_commit(self, repo: str | None = None, ref: str = "HEAD") -> str:
         if repo is None:
             repo = self.repo
-        print(f"Fetching HEAD commit for {repo}")
-        return requests.get(f"https://api.github.com/repos/{repo}/commits/HEAD", headers=HEADERS, timeout=30).json()["sha"]
+        print(f"Fetching commit for {repo}@{ref}")
+        return requests.get(f"https://api.github.com/repos/{repo}/commits/{ref}", headers=HEADERS, timeout=30).json()["sha"]
 
     def trigger_workflow(self, workflow: str, inputs: dict) -> int:
         print(f"Triggering workflow for {inputs['name']}-{inputs.get('target')}")
@@ -124,7 +124,7 @@ def main():
         if str(info.get("disabled", "")).lower() in ["1", "true"]:
             continue
         print(f"Processing {name}")
-        remote_ref = gh.get_head_commit(info["upstream"])
+        remote_ref = gh.get_commit(info["upstream"], info.get("ref", "HEAD"))
         if info.get("type") == "rust":
             build_rust(name, info, remote_ref)
         if info.get("type") == "golang":
