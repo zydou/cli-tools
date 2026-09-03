@@ -1,6 +1,6 @@
 ---
 name: Build Go
-run-name: ${{inputs.name}}-${{inputs.ref}}
+run-name: ${{inputs.name}}-${{inputs.ref}}-${{inputs.target}}
 
 on:
   workflow_dispatch:
@@ -8,17 +8,16 @@ on:
       name:
         required: true
         description: tool name
-        default: bat
+        default: gopls
         type: string
       upstream:
         required: true
         description: upstream repo
-        default: sharkdp/bat
+        default: golang/tools
         type: string
       ref:
         required: true
-        description: upstream repo ref
-        default: b4e3a84e1a6e68b2211bdebbbb0873f1d4aa2f8d
+        description: upstream ref
         type: string
       goversion:
         required: true
@@ -30,23 +29,46 @@ on:
         description: go build ldflags
         default: -s -w
         type: string
+      target:
+        required: true
+        description: build target
+        default: linux-amd64
+        type: string
+      release:
+        required: true
+        description: release name to upload to
+        default: nightly
+        type: string
+      repo:
+        required: true
+        description: target repo (owner/name)
+        default: zydou/cli-tools
+        type: string
 
 permissions: write-all
 concurrency:
-  group: ${{inputs.name}}-${{inputs.ref}}
+  group: ${{inputs.name}}-${{inputs.target}}-${{inputs.ref}}-${{inputs.release}}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: ${{ inputs.name }}
+    name: ${{ inputs.name }} ${{ inputs.target }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
+
+      # Pull .goreleaser.yaml from the per-tool sub-repo (e.g. zydou/gopls-binary)
+      - name: Checkout tool repo
+        uses: actions/checkout@main
+        with:
+          repository: ${{ inputs.repo }}
+          path: tool-assets
 
       - name: checkout upstream
         uses: actions/checkout@main
         with:
           repository: ${{ inputs.upstream }}
+          ref: ${{ inputs.ref }}
           path: upstream
           fetch-depth: 0
           fetch-tags: true
@@ -83,7 +105,7 @@ jobs:
           if [ -f "upstream/.goreleaser.yml" ]; then
           rm -f upstream/.goreleaser.yml
           fi
-          cp -f "${{inputs.name}}/.goreleaser.yaml" "upstream/.goreleaser.yaml"
+          cp -f "tool-assets/.goreleaser.yaml" "upstream/.goreleaser.yaml"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "project_name"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "builds.[0].binary"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.ldflags}}" "builds.[0].ldflags"
@@ -94,17 +116,35 @@ jobs:
           REMOTE_REF: ${{ inputs.ref }}
         run: |
           cd upstream
-          goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
+          case "${{ inputs.target }}" in
+            linux-amd64)  GOOS=linux;  GOARCH=amd64 ;;
+            linux-arm64)  GOOS=linux;  GOARCH=arm64 ;;
+            darwin-amd64) GOOS=darwin; GOARCH=amd64 ;;
+            darwin-arm64) GOOS=darwin; GOARCH=arm64 ;;
+            *) echo "unknown target ${{ inputs.target }}"; exit 1 ;;
+          esac
+          echo "Building GOOS=$GOOS GOARCH=$GOARCH"
+          GOOS="$GOOS" GOARCH="$GOARCH" goreleaser release \
+            --config ./.goreleaser.yaml --auto-snapshot --clean --single-target
           echo "date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
           echo "short_ref=${REMOTE_REF:0:7}" >> $GITHUB_ENV
 
-      - uses: ncipollo/release-action@main
-        with:
-          allowUpdates: true
-          prerelease: true
-          artifacts: upstream/dist/*.tar.xz
-          body: Build at ${{env.date}} based on [${{env.short_ref}}](https://github.com/${{inputs.upstream}}/tree/${{inputs.remote_ref}})
-          commit: ${{ github.sha }}
-          name: ${{inputs.name}}
-          tag: ${{inputs.name}}
-          replacesArtifacts: true
+      - name: Upload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          cd "$GITHUB_WORKSPACE"
+          pip install requests
+          for tarball in upstream/dist/*.tar.xz; do
+              [ -e "$tarball" ] || continue
+              os_arch=$(basename "$tarball" .tar.xz)
+              os_arch="${os_arch#${{inputs.name}}-}"
+              python uploader.py \
+                --name "${{inputs.name}}" \
+                --target "$os_arch" \
+                --ref "${{inputs.ref}}" \
+                --upstream "${{inputs.upstream}}" \
+                --repo "${{inputs.repo}}" \
+                --release "${{inputs.release}}" \
+                --path "$tarball"
+          done

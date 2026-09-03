@@ -57,11 +57,21 @@ on:
         description: cross compile
         default: true
         type: boolean
+      release:
+        required: true
+        description: release name to upload to
+        default: nightly
+        type: string
+      repo:
+        required: true
+        description: target repo (owner/name)
+        default: zydou/cli-tools
+        type: string
 
 
 permissions: write-all
 concurrency:
-  group: ${{inputs.name}}-${{inputs.target}}-${{inputs.ref}}
+  group: ${{inputs.name}}-${{inputs.target}}-${{inputs.ref}}-${{inputs.release}}
   cancel-in-progress: true
 
 jobs:
@@ -196,4 +206,11 @@ jobs:
           mv "${{inputs.name}}-${{inputs.target}}.tar.xz" "$GITHUB_WORKSPACE/${{inputs.name}}-${{inputs.target}}.tar.xz"
           cd "$GITHUB_WORKSPACE"
           pip install requests
-          python uploader.py --name "${{inputs.name}}" --target "${{inputs.target}}" --ref "${{inputs.ref}}" --upstream "${{inputs.upstream}}" --path "${{inputs.name}}-${{inputs.target}}.tar.xz"
+          python uploader.py \
+            --name "${{inputs.name}}" \
+            --target "${{inputs.target}}" \
+            --ref "${{inputs.ref}}" \
+            --upstream "${{inputs.upstream}}" \
+            --repo "${{inputs.repo}}" \
+            --release "${{inputs.release}}" \
+            --path "${{inputs.name}}-${{inputs.target}}.tar.xz"

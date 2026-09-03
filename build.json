@@ -61,7 +61,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "ekzhang/bore"
+    "upstream": "ekzhang/bore",
+    "repo": "zydou/bore-binary"
   },
   "broot": {
     "disabled": true,
@@ -113,7 +114,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "dandavison/delta"
+    "upstream": "dandavison/delta",
+    "repo": "zydou/delta-binary"
   },
   "diskonaut": {
     "disabled": true,
@@ -138,7 +140,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "Byron/dua-cli"
+    "upstream": "Byron/dua-cli",
+    "repo": "zydou/dua-binary"
   },
   "dust": {
     "disabled": true,
@@ -196,7 +199,8 @@
     "type": "golang",
     "goversion": "~1.26",
     "ldflags": "-s -w",
-    "upstream": "golang/tools"
+    "upstream": "golang/tools",
+    "repo": "zydou/gopls-binary"
   },
   "gping": {
     "disabled": true,
@@ -241,7 +245,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "konradsz/igrep"
+    "upstream": "konradsz/igrep",
+    "repo": "zydou/igrep-binary"
   },
   "joshuto": {
     "disabled": true,
@@ -266,7 +271,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "Macchina-CLI/macchina"
+    "upstream": "Macchina-CLI/macchina",
+    "repo": "zydou/macchina-binary"
   },
   "mdcat": {
     "bin": "mdcat",
@@ -278,7 +284,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "BIRSAx2/mdcat"
+    "upstream": "BIRSAx2/mdcat",
+    "repo": "zydou/mdcat-binary"
   },
   "onefetch": {
     "bin": "onefetch",
@@ -290,7 +297,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "o2sh/onefetch"
+    "upstream": "o2sh/onefetch",
+    "repo": "zydou/onefetch-binary"
   },
   "repgrep": {
     "bin": "rgr",
@@ -302,7 +310,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "acheronfail/repgrep"
+    "upstream": "acheronfail/repgrep",
+    "repo": "zydou/repgrep-binary"
   },
   "rust-analyzer": {
     "bin": "rust-analyzer",
@@ -314,7 +323,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "rust-lang/rust-analyzer"
+    "upstream": "rust-lang/rust-analyzer",
+    "repo": "zydou/rust-analyzer-binary"
   },
   "ryl": {
     "bin": "ryl",
@@ -326,7 +336,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "owenlamont/ryl"
+    "upstream": "owenlamont/ryl",
+    "repo": "zydou/ryl-binary"
   },
   "ripgrep": {
     "disabled": true,
@@ -390,7 +401,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "tamasfe/taplo"
+    "upstream": "tamasfe/taplo",
+    "repo": "zydou/taplo-binary"
   },
   "tealdeer": {
     "disabled": true,
@@ -415,7 +427,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "telemt/telemt"
+    "upstream": "telemt/telemt",
+    "repo": "zydou/telemt-binary"
   },
   "texlab": {
     "bin": "texlab",
@@ -427,7 +440,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "latex-lsp/texlab"
+    "upstream": "latex-lsp/texlab",
+    "repo": "zydou/texlab-binary"
   },
   "ticker": {
     "disabled": true,
@@ -472,7 +486,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "XAMPPRocky/tokei"
+    "upstream": "XAMPPRocky/tokei",
+    "repo": "zydou/tokei-binary"
   },
   "tree-sitter": {
     "bin": "tree-sitter",
@@ -484,7 +499,8 @@
     "target_x86_64_darwin": true,
     "target_x86_64_linux_gnu": true,
     "target_x86_64_linux_musl": true,
-    "upstream": "tree-sitter/tree-sitter"
+    "upstream": "tree-sitter/tree-sitter",
+    "repo": "zydou/tree-sitter-binary"
   },
   "viu": {
     "disabled": true,

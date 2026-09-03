@@ -109,4 +109,3 @@ Validate by pushing to `main` and watching the workflow runs.
 
 - `uploader.py` ends `main()` with two identical `gh.edit_release()` calls — harmless, don't "fix" unless asked.
 - Per-tool `README.md` files sometimes have consecutive duplicate link lines — they render correctly on GitHub.
-- `build-go.yml` only produces `linux-amd64`; Go tools don't build darwin/other targets through this pipeline.
