@@ -163,6 +163,24 @@ jobs:
             exit 1
           fi
 
+      # telemt's `plan.rs` unconditionally imports
+      # `super::tcp_mss_runtime_profile`, but the function is gated
+      # `#[cfg(any(target_os = "linux", test))]` in `listeners.rs`. The
+      # call site in `plan.rs` is already `#[cfg(target_os = "linux")]`
+      # with a no-op else branch, so the import is unused on non-Linux
+      # targets and just needs the matching cfg gate. Without this,
+      # macOS / Windows builds fail with E0432.
+      - name: Apply telemt macOS cfg-import patch
+        if: inputs.name == 'telemt'
+        run: |
+          cd upstream
+          if git apply --check ../telemt/macos-cfg-import.patch; then
+            git apply ../telemt/macos-cfg-import.patch
+          else
+            echo "::error::telemt/macos-cfg-import.patch does not apply — upstream plan.rs changed around the tcp_mss_runtime_profile import. Re-generate the patch or drop it."
+            exit 1
+          fi
+
       - name: Build release binary
         run: |-
           cd upstream
