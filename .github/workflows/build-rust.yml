@@ -144,6 +144,25 @@ jobs:
             echo "Skipping bindgen.patch: crates/generate/Cargo.toml not found (old tree-sitter release)"
           fi
 
+      # mdcat's `curl = "0.4.47"` declaration activates the curl crate's
+      # default `ssl` feature, which pulls openssl-sys and needs the host's
+      # libssl-dev headers. cross-rs Linux images don't ship dev headers, so
+      # the build fails on every Linux target. Patch Cargo.toml to drop
+      # the default feature and use static-curl + static-ssl + zlib-ng,
+      # which vendors libcurl, OpenSSL and zlib into the binary. macOS
+      # still works because curl-sys auto-activates force-system-lib-on-osx
+      # on darwin.
+      - name: Apply mdcat vendored curl patch
+        if: inputs.name == 'mdcat'
+        run: |
+          cd upstream
+          if git apply --check ../mdcat/vendored-curl.patch; then
+            git apply ../mdcat/vendored-curl.patch
+          else
+            echo "::error::mdcat/vendored-curl.patch does not apply — upstream Cargo.toml's curl dep line changed. Re-generate the patch or drop it."
+            exit 1
+          fi
+
       - name: Build release binary
         run: |-
           cd upstream

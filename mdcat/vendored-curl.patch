@@ -1,0 +1,13 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 1421227..959b7ae 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -18,7 +18,7 @@ anstyle = { version = "1.0.7", default-features = false }
+ anyhow = { version = "1.0.89", default-features = false, features = ["std"] }
+ clap = { version = "4.5.17", default-features = false, features = ["std", "derive", "help", "usage", "error-context", "env"] }
+ clap_complete = "4.5.28"
+-curl = "0.4.47"
++curl = { version = "0.4.47", default-features = false, features = ["zlib-ng-compat", "static-ssl"] }
+ ignore = "0.4.31"
+ mime = { workspace = true}
+ notify = "8.2.0"
