@@ -28,6 +28,10 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+# The build workflow injects GITHUB_TOKEN=<PAT> into the env, so we
+# transparently use it for both REST calls and `gh` subprocesses
+# (the latter via GH_TOKEN). GITHUB_TOKEN alone, on the cross-repo
+# upload target, would 403.
 HEADERS = {
     "Accept": "application/vnd.github+json",
     "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
@@ -60,6 +64,7 @@ class Github:
                 "-t", name,
                 "-R", self.repo,
             ],
+            env={**os.environ, "GH_TOKEN": os.environ["GITHUB_TOKEN"]},
             check=False,
         )
 
@@ -91,6 +96,7 @@ class Github:
                 "--clobber",
                 "--", str(path),
             ],
+            env={**os.environ, "GH_TOKEN": os.environ["GITHUB_TOKEN"]},
             check=False,
         )
 

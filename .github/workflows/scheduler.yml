@@ -30,7 +30,9 @@ jobs:
       - name: Scheduler
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use PAT so scheduler.py can read per-tool sub-repos without
+          # rate-limiting concerns and any future write actions work too.
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |-
           python scheduler.py
 

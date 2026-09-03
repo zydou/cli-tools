@@ -199,7 +199,10 @@ jobs:
 
       - name: Upload ${{inputs.target}}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use a PAT instead of the default GITHUB_TOKEN because the
+          # upload target (zydou/<tool>-binary) is a different user-owned
+          # repo, and the default token gets 403 on cross-repo writes.
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |-
           cd "$GITHUB_WORKSPACE/upstream/target/${{inputs.target}}/release"
           tar -cJf "${{inputs.name}}-${{inputs.target}}.tar.xz" "${{inputs.binary_name}}"
