@@ -55,18 +55,29 @@ class Github:
         return None  # unreachable, for type checkers
 
     def create_release(self, name: str) -> None:
+        # Use the REST API instead of `gh release create` because gh
+        # will happily create duplicate releases with the same name
+        # ("By default, the release is created even if there are no
+        # new commits since the last release. This may result in the
+        # same or duplicate release" — `gh release create --help`).
+        # The REST endpoint returns 422 when the tag_name is taken.
         print(f"Creating release {name} [{self.repo}]")
-        subprocess.run(  # noqa: S602
-            [
-                "gh", "release", "create", name,
-                "--prerelease",
-                "-n", name,
-                "-t", name,
-                "-R", self.repo,
-            ],
-            env={**os.environ, "GH_TOKEN": os.environ["GITHUB_TOKEN"]},
-            check=False,
-        )
+        api = f"https://api.github.com/repos/{self.repo}/releases"
+        payload = {
+            "tag_name": name,
+            "name": name,
+            "body": name,
+            "prerelease": True,
+        }
+        res = requests.post(api, headers=HEADERS, json=payload, timeout=30)
+        if res.status_code == 201:
+            return
+        if res.status_code == 422:
+            # Tag already exists; another concurrent uploader raced us
+            # to it. That's fine — the existing release is what we
+            # want to upload to.
+            return
+        print(f"  create release returned {res.status_code}: {res.text}")
 
     def edit_release_body(self, name: str, ref: str, upstream: str) -> None:
         release = self.get_release(name)
