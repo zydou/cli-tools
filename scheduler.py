@@ -259,24 +259,36 @@ def process_tool(name: str, info: dict):
     elif info.get("type") == "golang":
         dispatch_go(tool_gh, main_gh, name, info, head_sha, release="nightly")
 
-    # === tag releases ===
+    # === tag release (only the latest publishable tag) ===
+    # Walk upstream tags in commit-date-desc order (the default from
+    # GitHub's /tags endpoint). The first tag that survives
+    # normalize_tag is the "latest" semantically meaningful release.
+    # If its release already exists in the sub-repo, we're done for
+    # this tool; otherwise dispatch its builds.
     print(f"[{name}] tags")
     existing_release_names = set(tool_gh.get_releases().keys())
     for tag in upstream_gh.get_tags():
         tag_name = tag["name"]
         release_name = normalize_tag(name, tag_name)
         if release_name is None:
-            continue  # tag doesn't match the per-tool policy; skip silently
+            # tag doesn't match the per-tool policy; try the next one
+            continue
         if release_name in existing_release_names:
-            continue  # already published
+            # latest already published; nothing to do
+            print(f"  {name} latest tag release {release_name} already present")
+            break
         tag_sha = tag["commit"]["sha"]
         if tag_sha == head_sha:
             # Tag pinned to HEAD; nightly already covers this commit.
-            continue
+            print(f"  {name} latest tag {tag_name} == HEAD; nightly covers it")
+            break
         if info.get("type") == "rust":
             dispatch_rust(tool_gh, main_gh, name, info, tag_sha, release=release_name)
         elif info.get("type") == "golang":
             dispatch_go(tool_gh, main_gh, name, info, tag_sha, release=release_name)
+        # only one tag release per cron run; the next one will catch up
+        # next cycle
+        break
 
 
 def main():
