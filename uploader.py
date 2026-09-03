@@ -61,13 +61,17 @@ class Github:
         # new commits since the last release. This may result in the
         # same or duplicate release" — `gh release create --help`).
         # The REST endpoint returns 422 when the tag_name is taken.
-        print(f"Creating release {name} [{self.repo}]")
+        #
+        # nightly releases are pre-releases; named tag releases
+        # (e.g. v2.15.0) are marked as the latest stable release.
+        prerelease = name == "nightly"
+        print(f"Creating release {name} [{self.repo}] (prerelease={prerelease})")
         api = f"https://api.github.com/repos/{self.repo}/releases"
         payload = {
             "tag_name": name,
             "name": name,
             "body": name,
-            "prerelease": True,
+            "prerelease": prerelease,
         }
         res = requests.post(api, headers=HEADERS, json=payload, timeout=30)
         if res.status_code == 201:
@@ -88,10 +92,12 @@ class Github:
             f"Build at {now:%Y-%m-%d %H:%M:%S} "
             f"based on [{ref[:7]}](https://github.com/{upstream}/tree/{ref})"
         )
+        # Preserve the existing prerelease flag — nightly stays a
+        # pre-release, tag releases stay as the latest stable.
         api = f"https://api.github.com/repos/{self.repo}/releases/{release['id']}"
         requests.patch(
             api, headers=HEADERS,
-            json={"tag_name": name, "body": body, "prerelease": True},
+            json={"tag_name": name, "body": body, "prerelease": release["prerelease"]},
             timeout=30,
         )
 
