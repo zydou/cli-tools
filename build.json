@@ -268,6 +268,18 @@
     "target_x86_64_linux_musl": true,
     "upstream": "Macchina-CLI/macchina"
   },
+  "mdcat": {
+    "bin": "mdcat",
+    "type": "rust",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": true,
+    "target_aarch64_linux_gnu": true,
+    "target_aarch64_linux_musl": true,
+    "target_x86_64_darwin": true,
+    "target_x86_64_linux_gnu": true,
+    "target_x86_64_linux_musl": true,
+    "upstream": "BIRSAx2/mdcat"
+  },
   "onefetch": {
     "bin": "onefetch",
     "type": "rust",
