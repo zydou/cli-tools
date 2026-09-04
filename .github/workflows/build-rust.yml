@@ -107,11 +107,11 @@ jobs:
           # the whole step. Retry the download so a single hiccup doesn't
           # fail the build, and verify binstall actually landed before use.
           curl -L --proto '=https' --tlsv1.2 --retry 5 --retry-connrefused --retry-all-errors --retry-delay 3 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall -y cross
           cargo binstall --list 2>/dev/null | grep -q cargo-binstall || {
             echo "::error::cargo-binstall failed to install"
             exit 1
           }
-          cargo binstall -y cross
           echo "CARGO=cross" >> $GITHUB_ENV
 
       - name: Set profile.release.strip = true
