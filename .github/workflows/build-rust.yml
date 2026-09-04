@@ -99,19 +99,8 @@ jobs:
 
       - name: Install Cross
         if: ${{ inputs.cross }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # cargo-binstall's install script is fetched from a raw GitHub
-          # URL; transient network blips (connection reset) used to abort
-          # the whole step. Retry the download so a single hiccup doesn't
-          # fail the build, and verify binstall actually landed before use.
-          curl -L --proto '=https' --tlsv1.2 --retry 5 --retry-connrefused --retry-all-errors --retry-delay 3 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall -y cross
-          cargo binstall --list 2>/dev/null | grep -q cargo-binstall || {
-            echo "::error::cargo-binstall failed to install"
-            exit 1
-          }
+          cargo install -y cross
           echo "CARGO=cross" >> $GITHUB_ENV
 
       - name: Set profile.release.strip = true
