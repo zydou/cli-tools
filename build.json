@@ -197,7 +197,7 @@
   },
   "gopls": {
     "type": "golang",
-    "goversion": "~1.26",
+    "goversion": "~1.27",
     "ldflags": "-s -w",
     "upstream": "golang/tools",
     "repo": "zydou/gopls-binary"
