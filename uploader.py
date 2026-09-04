@@ -107,9 +107,14 @@ class Github:
         if self.get_release(release_name) is None:
             self.create_release(release_name)
         print(f"Uploading {path.name} to {release_name} [{self.repo}]")
+        # --repo is required because the workflow checks out the main repo
+        # (zydou/cli-tools), so gh would infer the wrong target repo without
+        # it. The REST-based get_release/create_release above already use
+        # self.repo, so the upload must match.
         subprocess.run(  # noqa: S602
             [
                 "gh", "release", "upload", release_name,
+                "--repo", self.repo,
                 "--clobber",
                 "--", str(path),
             ],
