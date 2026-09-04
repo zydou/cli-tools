@@ -114,6 +114,10 @@ jobs:
       - name: build
         env:
           REMOTE_REF: ${{ inputs.ref }}
+          # goreleaser v2 dropped the `--single-target` flag from the
+          # `release` subcommand. Build every target and pick the one
+          # archive matching this job's target below.
+          TARGET: ${{ inputs.target }}
         run: |
           cd upstream
           case "${{ inputs.target }}" in
@@ -125,7 +129,7 @@ jobs:
           esac
           echo "Building GOOS=$GOOS GOARCH=$GOARCH"
           GOOS="$GOOS" GOARCH="$GOARCH" goreleaser release \
-            --config ./.goreleaser.yaml --auto-snapshot --clean --single-target
+            --config ./.goreleaser.yaml --snapshot --clean
           echo "date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
           echo "short_ref=${REMOTE_REF:0:7}" >> $GITHUB_ENV
 
@@ -138,16 +142,21 @@ jobs:
         run: |-
           cd "$GITHUB_WORKSPACE"
           pip install requests
-          for tarball in upstream/dist/*.tar.xz; do
-              [ -e "$tarball" ] || continue
-              os_arch=$(basename "$tarball" .tar.xz)
-              os_arch="${os_arch#${{inputs.name}}-}"
-              python uploader.py \
-                --name "${{inputs.name}}" \
-                --target "$os_arch" \
-                --ref "${{inputs.ref}}" \
-                --upstream "${{inputs.upstream}}" \
-                --repo "${{inputs.repo}}" \
-                --release "${{inputs.release}}" \
-                --path "$tarball"
-          done
+          # goreleaser builds every target; upload only the archive for
+          # this job's target so the 4 parallel jobs don't all clobber
+          # each other's assets.
+          tarball="upstream/dist/${{inputs.name}}-${{inputs.target}}.tar.xz"
+          if [ ! -e "$tarball" ]; then
+            echo "::error::expected archive $tarball not found"
+            ls -la upstream/dist/ || true
+            exit 1
+          fi
+          os_arch="${{inputs.target}}"
+          python uploader.py \
+            --name "${{inputs.name}}" \
+            --target "$os_arch" \
+            --ref "${{inputs.ref}}" \
+            --upstream "${{inputs.upstream}}" \
+            --repo "${{inputs.repo}}" \
+            --release "${{inputs.release}}" \
+            --path "$tarball"
