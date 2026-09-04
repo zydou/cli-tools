@@ -122,7 +122,7 @@ jobs:
             goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
           else
             GORELEASER_CURRENT_TAG="${{inputs.release}}" \
-            goreleaser release --config ./.goreleaser.yaml --clean
+            goreleaser release --config ./.goreleaser.yaml --skip=publish --clean
           fi
 
       - name: Upload all archives
