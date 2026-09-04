@@ -53,6 +53,8 @@ jobs:
       - uses: actions/checkout@main
 
       # Checkout upstream at the requested ref
+      # fetch-tags is only needed for tag releases (where GORELEASER_CURRENT_TAG
+      # overrides tag detection anyway), but keeping it true is harmless.
       - name: checkout upstream
         uses: actions/checkout@main
         with:
@@ -104,11 +106,24 @@ jobs:
 
       # Go cross-compiles all targets natively — one goreleaser run
       # produces linux-amd64, linux-arm64, darwin-amd64, darwin-arm64.
+      #
+      # For nightly builds, --auto-snapshot lets goreleaser generate a
+      # snapshot version automatically (HEAD usually has no tag).
+      # For tag releases, the upstream repo's git tag (e.g.
+      # gopls/v0.23.0-pre.2) contains a slash and is not valid semver,
+      # which breaks goreleaser's checksum file path. Set
+      # GORELEASER_CURRENT_TAG to the normalized release name so
+      # goreleaser uses a clean version instead of detecting the tag.
+      #
       - name: build all targets
         run: |
           cd upstream
-          goreleaser release \
-            --config ./.goreleaser.yaml --auto-snapshot --clean
+          if [ "${{inputs.release}}" = "nightly" ]; then
+            goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
+          else
+            GORELEASER_CURRENT_TAG="${{inputs.release}}" \
+            goreleaser release --config ./.goreleaser.yaml --clean
+          fi
 
       - name: Upload all archives
         env:
