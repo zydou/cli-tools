@@ -100,7 +100,12 @@ jobs:
       - name: Install Cross
         if: ${{ inputs.cross }}
         run: |
-          cargo install cross
+          # Download the pre-built cross binary instead of compiling from
+          # source with `cargo install` (which takes ~5 min of build time).
+          mkdir -p "$HOME/.cargo/bin"
+          curl -L --proto '=https' --tlsv1.2 -sSf \
+            https://github.com/cross-rs/cross/releases/download/v0.2.5/cross-x86_64-unknown-linux-gnu.tar.gz \
+            | tar -xzf - -C "$HOME/.cargo/bin"
           echo "CARGO=cross" >> $GITHUB_ENV
 
       - name: Set profile.release.strip = true
