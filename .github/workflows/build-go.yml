@@ -121,8 +121,12 @@ jobs:
           if [ "${{inputs.release}}" = "nightly" ]; then
             goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
           else
+            # GORELEASER_CURRENT_TAG overrides the upstream tag detection
+            # (e.g. gopls/v0.23.0-pre.2 has slashes that break the version).
+            # --auto-snapshot enters snapshot mode when the repo is dirty
+            # (which it always is, since we modify .goreleaser.yaml above).
             GORELEASER_CURRENT_TAG="${{inputs.release}}" \
-            goreleaser release --config ./.goreleaser.yaml --skip=publish --clean
+            goreleaser release --config ./.goreleaser.yaml --auto-snapshot --clean
           fi
 
       - name: Upload all archives
