@@ -149,7 +149,7 @@ def go_targets(info: dict) -> list[str]:
 
 TAG_RULES: dict[str, dict] = {
     "mdcat": {
-        "match": re.compile(r"^(?:mdcat|mdless)-(\d+\.\d+\.\d+)$"),
+        "match": re.compile(r"^mdcat-(\d+\.\d+\.\d+)$"),
         "release": lambda m: f"v{m.group(1)}",
     },
     "rust-analyzer": {
@@ -221,25 +221,30 @@ def dispatch_go(
     ref: str,
     release: str,
 ):
+    # Go supports cross-compilation natively — one CI run builds all targets.
+    # Check each target's asset; if any are missing, dispatch a single
+    # workflow run that builds and uploads all of them.
+    missing = []
     for target in go_targets(info):
-        # gopls uses different asset naming: <name>-<os>-<arch>.tar.xz
         asset = f"{name}-{target}.tar.xz"
-        if asset in tool_gh.get_release_asset_names(release):
-            continue
-        print(f"  dispatch {name}/{release}/{target}")
-        main_gh.trigger_workflow(
-            "build-go",
-            {
-                "name": name,
-                "upstream": info["upstream"],
-                "ref": ref,
-                "goversion": info["goversion"],
-                "ldflags": info["ldflags"],
-                "target": target,
-                "release": release,
-                "repo": info["repo"],
-            },
-        )
+        if asset not in tool_gh.get_release_asset_names(release):
+            missing.append(target)
+    if not missing:
+        print(f"  {name}/{release}: all targets already built — skipping")
+        return
+    print(f"  dispatch {name}/{release} (targets: {', '.join(missing)})")
+    main_gh.trigger_workflow(
+        "build-go",
+        {
+            "name": name,
+            "upstream": info["upstream"],
+            "ref": ref,
+            "goversion": info["goversion"],
+            "ldflags": info["ldflags"],
+            "release": release,
+            "repo": info["repo"],
+        },
+    )
 
 
 # --- Main loop -----------------------------------------------------
@@ -260,27 +265,34 @@ def process_tool(name: str, info: dict):
         dispatch_go(tool_gh, main_gh, name, info, head_sha, release="nightly")
 
     # === tag release (only the latest publishable tag) ===
-    # Walk upstream tags in commit-date-desc order (the default from
-    # GitHub's /tags endpoint). The first tag that survives
-    # normalize_tag is the "latest" semantically meaningful release.
+    # GitHub's /tags endpoint returns tags ordered by creation date,
+    # which for forked repos can be arbitrary. Collect all matching tags
+    # and pick the one with the highest semantic version.
     # dispatch_rust/dispatch_go do per-asset dedup — they check each
     # target's asset in the tag release and only dispatch missing ones.
     # So we always dispatch the latest tag and let them decide; no need
     # for separate tag==HEAD or release-exists shortcuts.
     print(f"[{name}] tags")
+    tag_candidates = []
     for tag in upstream_gh.get_tags():
         tag_name = tag["name"]
         release_name = normalize_tag(name, tag_name)
         if release_name is None:
             continue
-        tag_sha = tag["commit"]["sha"]
+        # extract version number for sorting
+        # works for semver (2.15.0) and date-based (2026-09-04) tags
+        m = TAG_RULES.get(name, TAG_RULES["_default"])["match"].match(tag_name)
+        version_str = m.group(1)
+        parts = tuple(int(p) for p in re.split(r'[.-]', version_str))
+        tag_candidates.append((parts, tag["commit"]["sha"], release_name))
+    if tag_candidates:
+        # pick the highest semver tag
+        tag_candidates.sort(reverse=True)
+        _, tag_sha, release_name = tag_candidates[0]
         if info.get("type") == "rust":
             dispatch_rust(tool_gh, main_gh, name, info, tag_sha, release=release_name)
         elif info.get("type") == "golang":
             dispatch_go(tool_gh, main_gh, name, info, tag_sha, release=release_name)
-        # only one tag release per cron run; the next one will catch up
-        # next cycle
-        break
 
 
 def main():

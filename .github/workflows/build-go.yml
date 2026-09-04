@@ -1,6 +1,6 @@
 ---
 name: Build Go
-run-name: ${{inputs.name}}-${{inputs.ref}}-${{inputs.target}}
+run-name: ${{inputs.name}}-${{inputs.ref}}
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ on:
         type: string
       ref:
         required: true
-        description: upstream ref
+        description: upstream ref (commit SHA)
         type: string
       goversion:
         required: true
@@ -28,11 +28,6 @@ on:
         required: true
         description: go build ldflags
         default: -s -w
-        type: string
-      target:
-        required: true
-        description: build target
-        default: linux-amd64
         type: string
       release:
         required: true
@@ -47,23 +42,17 @@ on:
 
 permissions: write-all
 concurrency:
-  group: ${{inputs.name}}-${{inputs.target}}-${{inputs.ref}}-${{inputs.release}}
+  group: ${{inputs.name}}-${{inputs.ref}}-${{inputs.release}}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: ${{ inputs.name }} ${{ inputs.target }}
+    name: ${{ inputs.name }} all targets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
 
-      # Pull .goreleaser.yaml from the per-tool sub-repo (e.g. zydou/gopls-binary)
-      - name: Checkout tool repo
-        uses: actions/checkout@main
-        with:
-          repository: ${{ inputs.repo }}
-          path: tool-assets
-
+      # Checkout upstream at the requested ref
       - name: checkout upstream
         uses: actions/checkout@main
         with:
@@ -105,58 +94,39 @@ jobs:
           if [ -f "upstream/.goreleaser.yml" ]; then
           rm -f upstream/.goreleaser.yml
           fi
-          cp -f "tool-assets/.goreleaser.yaml" "upstream/.goreleaser.yaml"
+          # Use the .goreleaser.yaml from the tool directory in this repo
+          # (e.g. gopls/.goreleaser.yaml) — not from the sub-repo.
+          cp -f "${{inputs.name}}/.goreleaser.yaml" "upstream/.goreleaser.yaml"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "project_name"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.name}}" "builds.[0].binary"
           dasel put -f "upstream/.goreleaser.yaml" --value "${{inputs.ldflags}}" "builds.[0].ldflags"
           cat "upstream/.goreleaser.yaml"
 
-      - name: build
-        env:
-          REMOTE_REF: ${{ inputs.ref }}
-          # goreleaser v2 dropped the `--single-target` flag from the
-          # `release` subcommand. Build every target and pick the one
-          # archive matching this job's target below.
-          TARGET: ${{ inputs.target }}
+      # Go cross-compiles all targets natively — one goreleaser run
+      # produces linux-amd64, linux-arm64, darwin-amd64, darwin-arm64.
+      - name: build all targets
         run: |
           cd upstream
-          case "${{ inputs.target }}" in
-            linux-amd64)  GOOS=linux;  GOARCH=amd64 ;;
-            linux-arm64)  GOOS=linux;  GOARCH=arm64 ;;
-            darwin-amd64) GOOS=darwin; GOARCH=amd64 ;;
-            darwin-arm64) GOOS=darwin; GOARCH=arm64 ;;
-            *) echo "unknown target ${{ inputs.target }}"; exit 1 ;;
-          esac
-          echo "Building GOOS=$GOOS GOARCH=$GOARCH"
-          GOOS="$GOOS" GOARCH="$GOARCH" goreleaser release \
-            --config ./.goreleaser.yaml --snapshot --clean
-          echo "date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          echo "short_ref=${REMOTE_REF:0:7}" >> $GITHUB_ENV
+          goreleaser release \
+            --config ./.goreleaser.yaml --auto-snapshot --clean
 
-      - name: Upload
+      - name: Upload all archives
         env:
-          # Use a PAT instead of the default GITHUB_TOKEN because the
-          # upload target (zydou/<tool>-binary) is a different user-owned
-          # repo, and the default token gets 403 on cross-repo writes.
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |-
           cd "$GITHUB_WORKSPACE"
           pip install requests
-          # goreleaser builds every target; upload only the archive for
-          # this job's target so the 4 parallel jobs don't all clobber
-          # each other's assets.
-          tarball="upstream/dist/${{inputs.name}}-${{inputs.target}}.tar.xz"
-          if [ ! -e "$tarball" ]; then
-            echo "::error::expected archive $tarball not found"
-            ls -la upstream/dist/ || true
-            exit 1
-          fi
-          os_arch="${{inputs.target}}"
-          python uploader.py \
-            --name "${{inputs.name}}" \
-            --target "$os_arch" \
-            --ref "${{inputs.ref}}" \
-            --upstream "${{inputs.upstream}}" \
-            --repo "${{inputs.repo}}" \
-            --release "${{inputs.release}}" \
-            --path "$tarball"
+          for tarball in upstream/dist/*.tar.xz; do
+            [ -e "$tarball" ] || { echo "::error::No archives found in upstream/dist/"; ls -la upstream/dist/; exit 1; }
+            base=$(basename "$tarball" .tar.xz)
+            target="${base#${{inputs.name}}-}"
+            echo "Uploading $base (target: $target) to ${{inputs.repo}}/${{inputs.release}}"
+            python uploader.py \
+              --name "${{inputs.name}}" \
+              --target "$target" \
+              --ref "${{inputs.ref}}" \
+              --upstream "${{inputs.upstream}}" \
+              --repo "${{inputs.repo}}" \
+              --release "${{inputs.release}}" \
+              --path "$tarball"
+          done
