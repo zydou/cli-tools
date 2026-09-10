@@ -7,9 +7,11 @@ Runs on cron and on every push to main that touches build.json /
 scheduler.py / scheduler.yml. For each enabled tool in build.json:
 
 1. Fetch upstream HEAD commit.
-2. For the per-tool sub-repo, ensure the `nightly` release has every
-   target's tarball. If any are missing, dispatch a build for them
-   with `ref=HEAD` and `release=nightly`.
+2. For the per-tool sub-repo, parse the `nightly` release body into a
+   per-target record of the upstream commit each target was built from
+   (written by uploader.py — asset filenames carry no commit hash).
+   Dispatch builds only for targets whose recorded commit differs from
+   HEAD, with `ref=HEAD` and `release=nightly`.
 3. Fetch upstream tags, normalize each one through the per-tool
    TAG_RULES table. For tags that pass the whitelist and whose
    release is not yet in the sub-repo, and whose commit differs
@@ -29,6 +31,11 @@ HEADERS = {
     "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
     "X-GitHub-Api-Version": "2022-11-28",
 }
+
+# Matches one per-target record line in a release body, as written by
+# uploader.py: "- x86_64-unknown-linux-gnu: built ... — [abc1234](https://github.com/{upstream}/tree/<40-hex-sha>)"
+# Keep in sync with uploader.py's TARGET_SHA_RE.
+TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40})", re.MULTILINE)
 
 
 class Github:
@@ -78,6 +85,20 @@ class Github:
         if release is None:
             return set()
         return {a["name"] for a in release.get("assets", [])}
+
+    def get_built_target_shas(self, release_name: str) -> dict[str, str]:
+        """Map each target to the upstream commit it was built from.
+
+        uploader.py writes one record line per successfully uploaded
+        target into the release body (see edit_release_body). Returns
+        an empty dict when the release is missing or its body has no
+        parseable lines — the caller must then treat every target as
+        stale and rebuild.
+        """
+        release = self.get_releases().get(release_name)
+        if release is None:
+            return {}
+        return dict(TARGET_SHA_RE.findall(release.get("body") or ""))
 
     def get_tags(self) -> list[dict]:
         if self._tags is not None:
@@ -189,11 +210,16 @@ def dispatch_rust(
     info: dict,
     ref: str,
     release: str,
+    built: dict[str, str] | None = None,
 ):
-    for triple, target, runner, cross in rust_targets(info):
-        # skip if this target's asset is already in the release
-        asset = f"{name}-{target}.tar.xz"
-        if asset in tool_gh.get_release_asset_names(release):
+    targets = rust_targets(info)
+    if built is None:
+        # tag release: asset presence is the build record (tag commits
+        # are immutable, so a built asset was built from `ref` itself).
+        names = tool_gh.get_release_asset_names(release)
+        built = {t: ref for _, t, _, _ in targets if f"{name}-{t}.tar.xz" in names}
+    for triple, target, runner, cross in targets:
+        if built.get(target) == ref:
             continue
         print(f"  dispatch {name}/{release}/{target}")
         main_gh.trigger_workflow(
@@ -220,15 +246,18 @@ def dispatch_go(
     info: dict,
     ref: str,
     release: str,
+    built: dict[str, str] | None = None,
 ):
     # Go supports cross-compilation natively — one CI run builds all targets.
-    # Check each target's asset; if any are missing, dispatch a single
-    # workflow run that builds and uploads all of them.
-    missing = []
-    for target in go_targets(info):
-        asset = f"{name}-{target}.tar.xz"
-        if asset not in tool_gh.get_release_asset_names(release):
-            missing.append(target)
+    # If any target is stale, dispatch a single workflow run that builds
+    # and uploads all of them.
+    targets = go_targets(info)
+    if built is None:
+        # tag release: asset presence is the build record (tag commits
+        # are immutable, so a built asset was built from `ref` itself).
+        names = tool_gh.get_release_asset_names(release)
+        built = {t: ref for t in targets if f"{name}-{t}.tar.xz" in names}
+    missing = [t for t in targets if built.get(t) != ref]
     if not missing:
         print(f"  {name}/{release}: all targets already built — skipping")
         return
@@ -258,11 +287,15 @@ def process_tool(name: str, info: dict):
     head_sha = upstream_gh.get_commit("HEAD")
 
     # === nightly release ===
+    # Asset names carry no commit hash, so the release body (written by
+    # uploader.py, one line per target) is the only record of what each
+    # target was built from. Rebuild exactly the stale targets.
     print(f"[{name}] nightly")
+    built = tool_gh.get_built_target_shas("nightly")
     if info.get("type") == "rust":
-        dispatch_rust(tool_gh, main_gh, name, info, head_sha, release="nightly")
+        dispatch_rust(tool_gh, main_gh, name, info, head_sha, release="nightly", built=built)
     elif info.get("type") == "golang":
-        dispatch_go(tool_gh, main_gh, name, info, head_sha, release="nightly")
+        dispatch_go(tool_gh, main_gh, name, info, head_sha, release="nightly", built=built)
 
     # === tag release (only the latest publishable tag) ===
     # GitHub's /tags endpoint returns tags ordered by creation date,

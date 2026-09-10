@@ -15,18 +15,25 @@ Behavior:
   unchanged. We never delete assets — a temporarily-failing target
   keeps its previous-good tarball, so the release is never in a
   "missing target X" state.
-- Edit the release body to record the build timestamp and upstream
-  commit link. The body is updated on every successful upload.
+- Record the build in the release body: one line per target,
+  ``- {target}: built <ts> — [sha](link)``. Only this target's line is
+  touched; the body is the per-target build record that scheduler.py's
+  nightly staleness check parses.
 """
 
 import argparse
 import os
+import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
+
+# Matches one per-target record line in a release body (see edit_release_body).
+# Keep in sync with scheduler.py's TARGET_SHA_RE.
+TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40})", re.MULTILINE)
 
 # The build workflow injects GITHUB_TOKEN=<PAT> into the env, so we
 # transparently use it for both REST calls and `gh` subprocesses
@@ -83,23 +90,32 @@ class Github:
             return
         print(f"  create release returned {res.status_code}: {res.text}")
 
-    def edit_release_body(self, name: str, ref: str, upstream: str) -> None:
-        release = self.get_release(name)
-        if release is None:
-            return
-        now = datetime.now(ZoneInfo("UTC"))
-        body = (
-            f"Build at {now:%Y-%m-%d %H:%M:%S} "
-            f"based on [{ref[:7]}](https://github.com/{upstream}/tree/{ref})"
+    def edit_release_body(self, name: str, ref: str, upstream: str, target: str) -> None:
+        line = (
+            f"- {target}: built {datetime.now(ZoneInfo('UTC')):%Y-%m-%d %H:%M:%S} UTC — "
+            f"[{ref[:7]}](https://github.com/{upstream}/tree/{ref})"
         )
-        # Preserve the existing prerelease flag — nightly stays a
-        # pre-release, tag releases stay as the latest stable.
-        api = f"https://api.github.com/repos/{self.repo}/releases/{release['id']}"
-        requests.patch(
-            api, headers=HEADERS,
-            json={"tag_name": name, "body": body, "prerelease": release["prerelease"]},
-            timeout=30,
-        )
+        # Parallel target builds PATCH the same release concurrently; a
+        # naive read-modify-write could drop another target's line, so
+        # re-read after the PATCH and retry until our line sticks.
+        for _ in range(3):
+            release = self.get_release(name)
+            if release is None:
+                return
+            lines = {m.group(1): m.group(0) for m in TARGET_SHA_RE.finditer(release.get("body") or "")}
+            lines[target] = line
+            body = "\n".join(lines[t] for t in sorted(lines))
+            # Preserve the existing prerelease flag — nightly stays a
+            # pre-release, tag releases stay as the latest stable.
+            api = f"https://api.github.com/repos/{self.repo}/releases/{release['id']}"
+            requests.patch(
+                api, headers=HEADERS,
+                json={"tag_name": name, "body": body, "prerelease": release["prerelease"]},
+                timeout=30,
+            )
+            verify = self.get_release(name)
+            if verify is not None and line in (verify.get("body") or ""):
+                return
 
     def upload_asset(self, path: str | Path, release_name: str) -> None:
         path = Path(path).resolve()
@@ -150,7 +166,7 @@ def main():
 
     gh = Github(repo=args.repo)
     gh.upload_asset(canonical, args.release)
-    gh.edit_release_body(args.release, args.ref, args.upstream)
+    gh.edit_release_body(args.release, args.ref, args.upstream, args.target)
 
 
 if __name__ == "__main__":

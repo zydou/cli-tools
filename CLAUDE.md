@@ -34,8 +34,8 @@ Runs on a cron (`0 8 * * *`) via `.github/workflows/scheduler.yml`, and also on 
 For each enabled tool it:
 
 1. Queries the upstream repo's HEAD commit via GitHub API
-2. Checks whether a release asset already exists for that commit (asset names embed the 7-char commit SHA)
-3. Dispatches `build-rust` or `build-go` workflow runs only for missing target/commit combos
+2. Compares it against the per-target upstream commits recorded in the nightly release body (one line per target, written by `uploader.py`)
+3. Dispatches `build-rust` or `build-go` workflow runs only for stale targets (nightly) or missing assets (tag releases)
 
 ### Build workflows
 
@@ -51,9 +51,8 @@ For each enabled tool it:
 ### Uploader: `uploader.py`
 
 Called at the end of `build-rust` jobs.
-Handles deduplication (skips if asset exists), deletes old assets
-(keeps those updated in the last day or with ≥2 downloads), uploads the new tarball, and edits the release body with the build timestamp and upstream commit link.
-Release names match the tool name; assets are named `{tool}-{target}-{commit_sha_7}.tar.xz`.
+Uploads the new tarball with `--clobber` (replacing same-named assets, never deleting others) and updates the release body's per-target record line (build timestamp + upstream commit link).
+Release names match the tool name; assets are named `{tool}-{target}.tar.xz` (no commit hash — the release body lines are what record which commit each target was built from, and the scheduler's nightly staleness check parses them).
 
 ### Per-tool directories
 
@@ -94,8 +93,8 @@ Validate by pushing to `main` and watching the workflow runs.
 
 ## Conventions
 
-- Asset naming must stay consistent: `{tool}-{target}-{7-char-sha}.tar.xz` for rust, `{tool}-linux-amd64.tar.xz` for go.
-  The scheduler and uploader both depend on these patterns.
+- Asset naming must stay consistent: `{tool}-{target}.tar.xz` for rust, `{tool}-linux-amd64.tar.xz` for go (no commit hash in filenames).
+  The scheduler, uploader, and the nightly staleness check (release body) all depend on these patterns.
 - `build.json` keys are ordered alphabetically (maintained by convention).
 - New macOS builds use `macos-latest` (Arm64) or `macos-15-intel` (Intel) as the runner; Linux targets use `ubuntu-latest` with `cross`.
 - Rust release profile is hardened in `build-rust.yml`: `strip = true`, `opt-level = "z"`, `lto = true`, `codegen-units = 1`, `panic = "abort"`.
