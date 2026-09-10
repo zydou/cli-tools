@@ -121,13 +121,6 @@ jobs:
           panic = "abort"
           EOF
 
-      # https://github.com/sfackler/rust-openssl/issues/603
-      - name: Apply openssl path
-        if: inputs.name == 'hoard'
-        run: |
-          cd upstream
-          git apply ../hoard/openssl.patch
-
       # tree-sitter >= 0.26 enables rquickjs's `bindgen` feature, which runs
       # bindgen+libclang at build time to generate QuickJS bindings.
       # bindgen >= 0.71 requires clang >= 9, but the cross-rs images
