@@ -1,12 +1,13 @@
 diff --git a/crates/generate/Cargo.toml b/crates/generate/Cargo.toml
-index c32174a..d065b8a 100644
+index 3925a03..9051ae4 100644
 --- a/crates/generate/Cargo.toml
 +++ b/crates/generate/Cargo.toml
-@@ -33,7 +33,6 @@ pathdiff = { optional = true, version = "0.2.3" }
+@@ -32,7 +32,7 @@ log.workspace = true
+ pathdiff = { optional = true, version = "0.2.3" }
  regex.workspace = true
  regex-syntax.workspace = true
- rquickjs = { features = [
--  "bindgen",
-   "loader",
-   "macro",
-   "phf",
+-rquickjs = { features = [ "bindgen", "loader", "macro", "phf" ], optional = true, version = "0.13" }
++rquickjs = { features = [ "loader", "macro", "phf" ], optional = true, version = "0.13" }
+ rustc-hash.workspace = true
+ semver = { optional = true, workspace = true }
+ serde.workspace = true
