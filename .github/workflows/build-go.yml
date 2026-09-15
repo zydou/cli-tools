@@ -37,7 +37,10 @@ on:
       repo:
         required: true
         description: target repo (owner/name)
-        default: zydou/cli-tools
+        # Must be a per-tool sub-repo, not this repo: this repo no longer
+        # publishes releases, and uploader.py would happily create a
+        # `nightly` release here from scratch.
+        default: zydou/gopls-binary
         type: string
 
 permissions: write-all
