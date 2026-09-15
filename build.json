@@ -1,56 +1,4 @@
 {
-  "arti": {
-    "disabled": true,
-    "bin": "arti",
-    "type": "rust",
-    "build_args": "--release --locked -p arti --features static",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "zydou/arti"
-  },
-  "atuin": {
-    "disabled": true,
-    "bin": "atuin",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "atuinsh/atuin"
-  },
-  "bandwhich": {
-    "disabled": true,
-    "bin": "bandwhich",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "imsnif/bandwhich"
-  },
-  "bat": {
-    "disabled": true,
-    "bin": "bat",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "sharkdp/bat"
-  },
   "bore": {
     "bin": "bore",
     "type": "rust",
@@ -63,46 +11,6 @@
     "target_x86_64_linux_musl": true,
     "upstream": "ekzhang/bore",
     "repo": "zydou/bore-binary"
-  },
-  "broot": {
-    "disabled": true,
-    "bin": "broot",
-    "type": "rust",
-    "build_args": "--release",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "Canop/broot"
-  },
-  "bws": {
-    "disabled": true,
-    "bin": "bws",
-    "type": "rust",
-    "build_args": "--release --locked -p bws",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "bitwarden/sdk"
-  },
-  "cheat": {
-    "disabled": true,
-    "type": "golang",
-    "goversion": "~1.19",
-    "ldflags": "-s -w",
-    "upstream": "cheat/cheat"
-  },
-  "cointop": {
-    "disabled": true,
-    "type": "golang",
-    "goversion": "~1.18",
-    "ldflags": "-s -w -X github.com/cointop-sh/cointop/cointop.version={{incpatch .Tag}}",
-    "upstream": "cointop-sh/cointop"
   },
   "delta": {
     "bin": "delta",
@@ -117,19 +25,6 @@
     "upstream": "dandavison/delta",
     "repo": "zydou/delta-binary"
   },
-  "diskonaut": {
-    "disabled": true,
-    "bin": "diskonaut",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "imsnif/diskonaut"
-  },
   "dua": {
     "bin": "dua",
     "type": "rust",
@@ -143,97 +38,12 @@
     "upstream": "Byron/dua-cli",
     "repo": "zydou/dua-binary"
   },
-  "dust": {
-    "disabled": true,
-    "bin": "dust",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "bootandy/dust"
-  },
-  "fclones": {
-    "disabled": true,
-    "bin": "fclones",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "pkolaczk/fclones"
-  },
-  "fd": {
-    "disabled": true,
-    "bin": "fd",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "sharkdp/fd"
-  },
-  "gitui": {
-    "disabled": true,
-    "bin": "gitui",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "extrawurst/gitui"
-  },
   "gopls": {
     "type": "golang",
     "goversion": "~1.27",
     "ldflags": "-s -w",
     "upstream": "golang/tools",
     "repo": "zydou/gopls-binary"
-  },
-  "gping": {
-    "disabled": true,
-    "bin": "gping",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "orf/gping"
-  },
-  "hoard": {
-    "disabled": true,
-    "bin": "hoard",
-    "type": "rust",
-    "build_args": "--release",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "Hyde46/hoard"
-  },
-  "httpstat": {
-    "disabled": true,
-    "type": "golang",
-    "goversion": "~1.20",
-    "ldflags": "-s -w",
-    "upstream": "davecheney/httpstat"
   },
   "igrep": {
     "bin": "ig",
@@ -247,19 +57,6 @@
     "target_x86_64_linux_musl": true,
     "upstream": "konradsz/igrep",
     "repo": "zydou/igrep-binary"
-  },
-  "joshuto": {
-    "disabled": true,
-    "bin": "joshuto",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "kamiyaa/joshuto"
   },
   "lessi": {
     "bin": "lessi",
@@ -352,58 +149,6 @@
     "upstream": "owenlamont/ryl",
     "repo": "zydou/ryl-binary"
   },
-  "ripgrep": {
-    "disabled": true,
-    "bin": "rg",
-    "type": "rust",
-    "build_args": "--release --locked --features pcre2",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "BurntSushi/ripgrep"
-  },
-  "skim": {
-    "disabled": true,
-    "bin": "sk",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "lotabout/skim"
-  },
-  "stylua": {
-    "disabled": true,
-    "bin": "stylua",
-    "type": "rust",
-    "build_args": "--release --locked --all-features",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "JohnnyMorganz/stylua"
-  },
-  "tailspin": {
-    "disabled": true,
-    "bin": "tspin",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "bensadeh/tailspin"
-  },
   "taplo": {
     "bin": "taplo",
     "type": "rust",
@@ -416,19 +161,6 @@
     "target_x86_64_linux_musl": true,
     "upstream": "tamasfe/taplo",
     "repo": "zydou/taplo-binary"
-  },
-  "tealdeer": {
-    "disabled": true,
-    "bin": "tldr",
-    "type": "rust",
-    "build_args": "--release",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "dbrgn/tealdeer"
   },
   "telemt": {
     "bin": "telemt",
@@ -456,39 +188,6 @@
     "upstream": "latex-lsp/texlab",
     "repo": "zydou/texlab-binary"
   },
-  "ticker": {
-    "disabled": true,
-    "type": "golang",
-    "goversion": "~1.18",
-    "ldflags": "-s -w -X github.com/achannarasappa/ticker/cmd.Version={{incpatch .Tag}}",
-    "upstream": "achannarasappa/ticker"
-  },
-  "tickrs": {
-    "disabled": true,
-    "bin": "tickrs",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "tarkah/tickrs"
-  },
-  "tlrc": {
-    "disabled": true,
-    "bin": "tldr",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "tldr-pages/tlrc"
-  },
   "tokei": {
     "bin": "tokei",
     "type": "rust",
@@ -514,44 +213,5 @@
     "target_x86_64_linux_musl": true,
     "upstream": "tree-sitter/tree-sitter",
     "repo": "zydou/tree-sitter-binary"
-  },
-  "viu": {
-    "disabled": true,
-    "bin": "viu",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "atanunq/viu"
-  },
-  "xplr": {
-    "disabled": true,
-    "bin": "xplr",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": false,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "sayanarijit/xplr"
-  },
-  "yazi": {
-    "disabled": true,
-    "bin": "yazi",
-    "type": "rust",
-    "build_args": "--release --locked",
-    "target_aarch64_darwin": true,
-    "target_aarch64_linux_gnu": true,
-    "target_aarch64_linux_musl": true,
-    "target_x86_64_darwin": true,
-    "target_x86_64_linux_gnu": true,
-    "target_x86_64_linux_musl": true,
-    "upstream": "sxyazi/yazi"
   }
 }

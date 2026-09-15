@@ -8,22 +8,22 @@ on:
       name:
         required: true
         description: tool name
-        default: bat
+        default: lessi
         type: string
       upstream:
         required: true
         description: upstream repo
-        default: sharkdp/bat
+        default: roblillack/lessi
         type: string
       ref:
         required: true
         description: upstream repo ref
-        default: b4e3a84e1a6e68b2211bdebbbb0873f1d4aa2f8d
+        default: cbd5c4206780a898489c85156e8178fe079d4a70
         type: string
       binary_name:
         required: true
         description: cli binary name
-        default: bat
+        default: lessi
         type: string
       target:
         required: true
