@@ -33,7 +33,12 @@ import requests
 
 # Matches one per-target record line in a release body (see edit_release_body).
 # Keep in sync with scheduler.py's TARGET_SHA_RE.
-TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40})", re.MULTILINE)
+#
+# The match must extend to the end of the line: edit_release_body preserves
+# untouched record lines by re-joining their group(0) text, so a match that
+# stopped at the 40-hex SHA silently truncated the link's closing ")" off
+# every sibling line on each PATCH.
+TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40}).*$", re.MULTILINE)
 
 # The build workflow injects GITHUB_TOKEN=<PAT> into the env, so we
 # transparently use it for both REST calls and `gh` subprocesses

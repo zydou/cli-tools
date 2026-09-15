@@ -34,8 +34,10 @@ HEADERS = {
 
 # Matches one per-target record line in a release body, as written by
 # uploader.py: "- x86_64-unknown-linux-gnu: built ... — [abc1234](https://github.com/{upstream}/tree/<40-hex-sha>)"
-# Keep in sync with uploader.py's TARGET_SHA_RE.
-TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40})", re.MULTILINE)
+# Keep in sync with uploader.py's TARGET_SHA_RE. The trailing `.*$` is
+# required: uploader.py rebuilds the body from group(0) of sibling record
+# lines, so a match that ends at the SHA truncates the link's ")" off them.
+TARGET_SHA_RE = re.compile(r"^- (\S+): .*?/tree/([0-9a-f]{40}).*$", re.MULTILINE)
 
 
 class Github:
