@@ -14,7 +14,7 @@ There is no local build/test loop — changes to `build.json` or the workflow fi
 
 ### Build manifest: `build.json`
 
-The single source of truth for what gets built: **17 tools, all enabled** (16 `rust`, 1 `golang`). No tool is currently `disabled`.
+The single source of truth for what gets built: **18 tools, all enabled** (17 `rust`, 1 `golang`). No tool is currently `disabled`.
 
 Each key is a tool name with:
 
@@ -27,7 +27,7 @@ Each key is a tool name with:
 - `target_*`: booleans per target triple. Every enabled rust tool builds all 6; the field is what controls it.
 - `disabled`: set to `true` to skip a tool without removing its config. Still honored by `scheduler.py`, but unused as of now.
 
-**Enabled tools:** bore, delta, dua, gopls, igrep, lessi, macchina, mdcat, onefetch, repgrep, rust-analyzer, ryl, taplo, telemt, texlab, tokei, tree-sitter.
+**Enabled tools:** bore, delta, dua, gopls, igrep, lessi, lsd, macchina, mdcat, onefetch, repgrep, rust-analyzer, ryl, taplo, telemt, texlab, tokei, tree-sitter.
 
 ### Scheduler: `scheduler.py`
 
@@ -58,9 +58,9 @@ There are no per-tool READMEs. Only tools with build customization have a direct
 - `gopls/` — `.goreleaser.yaml` (the only Go tool, so the only such file)
 - `tree-sitter/` — `bindgen.patch`
 - `mdcat/` — `vendored-curl.patch`
-- `telemt/` — `macos-cfg-import.patch`
+- `lsd/` — `symlink-target-size.patch`
 
-Each patch is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. All three fail loudly if the patch no longer applies; `tree-sitter` additionally skips gracefully when upstream lacks `crates/generate/Cargo.toml` (older releases).
+Each patch is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `mdcat` and `lsd` fail loudly if the patch no longer applies; `tree-sitter` skips gracefully when upstream lacks `crates/generate/Cargo.toml` (older releases).
 
 ## Common tasks
 
