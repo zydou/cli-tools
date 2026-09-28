@@ -189,6 +189,21 @@ jobs:
             exit 1
           fi
 
+      # lsd's size column showed a symlink's own size (the byte length of
+      # the target path string) instead of the target's real size. Patch
+      # from_path so it reads the size from the target file's metadata
+      # (already fetched for file_type) rather than the link's.
+      - name: Apply lsd symlink target size patch
+        if: inputs.name == 'lsd'
+        run: |
+          cd upstream
+          if git apply --check ../lsd/symlink-target-size.patch; then
+            git apply ../lsd/symlink-target-size.patch
+          else
+            echo "::error::lsd/symlink-target-size.patch does not apply — upstream src/meta/mod.rs changed around the size computation. Re-generate the patch or drop it."
+            exit 1
+          fi
+
       - name: Build release binary
         run: |-
           cd upstream

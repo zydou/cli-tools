@@ -71,6 +71,19 @@
     "upstream": "roblillack/lessi",
     "repo": "zydou/lessi-binary"
   },
+  "lsd": {
+    "bin": "lsd",
+    "type": "rust",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": true,
+    "target_aarch64_linux_gnu": true,
+    "target_aarch64_linux_musl": true,
+    "target_x86_64_darwin": true,
+    "target_x86_64_linux_gnu": true,
+    "target_x86_64_linux_musl": true,
+    "upstream": "lsd-rs/lsd",
+    "repo": "zydou/lsd-binary"
+  },
   "macchina": {
     "bin": "macchina",
     "type": "rust",

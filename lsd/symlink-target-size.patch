@@ -1,0 +1,15 @@
+diff --git a/src/meta/mod.rs b/src/meta/mod.rs
+index 81b9dbc..f6269a6 100644
+--- a/src/meta/mod.rs
++++ b/src/meta/mod.rs
+@@ -340,7 +340,9 @@ impl Meta {
+                 false => (
+                     Some(INode::from(&metadata)),
+                     Some(Links::from(&metadata)),
+-                    Some(Size::from(&metadata)),
++                    // For a symlink, show the size of the target file rather
++                    // than the link itself (the length of the link string).
++                    Some(Size::from(symlink_meta.as_ref().unwrap_or(&metadata))),
+                     Some(Date::from(&metadata)),
+                     Some(owner),
+                     Some(permissions_or_attributes),
