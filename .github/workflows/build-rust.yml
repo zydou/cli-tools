@@ -186,6 +186,22 @@ jobs:
             exit 1
           fi
 
+      # gitui's upstream has no --start-tab flag. Patch App::new to open on the
+      # CLI-given tab index (0: Status, 1: Log, 2: Files, 3: Stashing, 4: Stashes)
+      # when given, falling back to the per-repo .git/gitui persisted tab. Also
+      # guard set_tab against an out-of-range index, since it is reached from
+      # Options::current_tab() which reads a user-editable .git/gitui.
+      - name: Apply gitui start-tab patch
+        if: inputs.name == 'gitui'
+        run: |
+          cd upstream
+          if git apply --check ../gitui/start-tab.patch; then
+            git apply ../gitui/start-tab.patch
+          else
+            echo "::error::gitui/start-tab.patch does not apply — upstream src/app.rs, src/args.rs or src/main.rs drifted. Re-generate the patch or drop it."
+            exit 1
+          fi
+
       - name: Build release binary
         run: |-
           cd upstream

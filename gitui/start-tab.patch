@@ -1,0 +1,94 @@
+diff --git a/src/app.rs b/src/app.rs
+index ddb157af..975137ae 100644
+--- a/src/app.rs
++++ b/src/app.rs
+@@ -188,7 +188,9 @@ impl App {
+ 			}
+ 			2
+ 		} else {
+-			env.options.borrow().current_tab()
++			cliargs
++				.start_tab
++				.unwrap_or_else(|| env.options.borrow().current_tab())
+ 		};
+ 
+ 		let mut app = Self {
+@@ -633,6 +635,13 @@ impl App {
+ 
+ 	fn set_tab(&mut self, tab: usize) -> Result<()> {
+ 		let tabs = self.get_tabs();
++		if tab >= tabs.len() {
++			bail!(
++				"unknown tab index: {tab} (expected 0..={})",
++				tabs.len().saturating_sub(1)
++			);
++		}
++
+ 		for (i, t) in tabs.into_iter().enumerate() {
+ 			if tab == i {
+ 				t.show()?;
+diff --git a/src/args.rs b/src/args.rs
+index 22c6cc8d..5c50fcab 100644
+--- a/src/args.rs
++++ b/src/args.rs
+@@ -18,6 +18,7 @@ const LOGGING_FLAG_ID: &str = "logging";
+ const THEME_FLAG_ID: &str = "theme";
+ const WORKDIR_FLAG_ID: &str = "workdir";
+ const FILE_FLAG_ID: &str = "file";
++const START_TAB_FLAG_ID: &str = "start-tab";
+ const GIT_DIR_FLAG_ID: &str = "directory";
+ const WATCHER_FLAG_ID: &str = "watcher";
+ const KEY_BINDINGS_FLAG_ID: &str = "key_bindings";
+@@ -29,6 +30,7 @@ const DEFAULT_GIT_DIR: &str = ".";
+ pub struct CliArgs {
+ 	pub theme: PathBuf,
+ 	pub select_file: Option<PathBuf>,
++	pub start_tab: Option<usize>,
+ 	pub repo_path: RepoPath,
+ 	pub notify_watcher: bool,
+ 	pub key_bindings_path: Option<PathBuf>,
+@@ -62,6 +64,9 @@ pub fn process_cmdline() -> Result<CliArgs> {
+ 		.get_one::<String>(FILE_FLAG_ID)
+ 		.map(PathBuf::from);
+ 
++	let start_tab =
++		arg_matches.get_one::<usize>(START_TAB_FLAG_ID).copied();
++
+ 	let repo_path = if let Some(w) = workdir {
+ 		RepoPath::Workdir { gitdir, workdir: w }
+ 	} else {
+@@ -95,6 +100,7 @@ pub fn process_cmdline() -> Result<CliArgs> {
+ 	Ok(CliArgs {
+ 		theme,
+ 		select_file,
++		start_tab,
+ 		repo_path,
+ 		notify_watcher,
+ 		key_bindings_path,
+@@ -174,6 +180,14 @@ fn app() -> ClapApp {
+ 				.long("file")
+ 				.num_args(1),
+ 		)
++		.arg(
++			Arg::new(START_TAB_FLAG_ID)
++				.help("Open the app on the given tab (0-based index, one less than the tab key: 0=Status, 1=Log, 2=Files, 3=Stashing, 4=Stashes)")
++				.long("start-tab")
++				.value_name("TAB")
++				.num_args(1)
++				.value_parser(clap::value_parser!(usize)),
++		)
+ 		.arg(
+ 			Arg::new(GIT_DIR_FLAG_ID)
+ 				.help("Set the git directory")
+diff --git a/src/main.rs b/src/main.rs
+index fd662950..945ec6b2 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -207,6 +207,7 @@ fn main() -> Result<()> {
+ 				args = CliArgs {
+ 					repo_path: p,
+ 					select_file: None,
++					start_tab: args.start_tab,
+ 					theme: args.theme,
+ 					notify_watcher: args.notify_watcher,
+ 					key_bindings_path: args.key_bindings_path,

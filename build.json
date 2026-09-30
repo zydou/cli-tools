@@ -38,6 +38,19 @@
     "upstream": "Byron/dua-cli",
     "repo": "zydou/dua-binary"
   },
+  "gitui": {
+    "bin": "gitui",
+    "type": "rust",
+    "build_args": "--release --locked",
+    "target_aarch64_darwin": true,
+    "target_aarch64_linux_gnu": true,
+    "target_aarch64_linux_musl": true,
+    "target_x86_64_darwin": true,
+    "target_x86_64_linux_gnu": true,
+    "target_x86_64_linux_musl": true,
+    "upstream": "gitui-org/gitui",
+    "repo": "zydou/gitui-binary"
+  },
   "gopls": {
     "type": "golang",
     "goversion": "~1.27",
