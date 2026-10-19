@@ -58,11 +58,11 @@ There are no per-tool READMEs. Only tools with build customization have a direct
 - `bore/` — `http-proxy.patch`
 - `gitui/` — `start-tab.patch`
 - `gopls/` — `.goreleaser.yaml` (the only Go tool, so the only such file)
-- `tree-sitter/` — `bindgen.patch`
+- `tree-sitter/` — `bindgen.sh`
 - `mdcat/` — `vendored-curl.patch`
 - `lsd/` — `symlink-target-size.patch`
 
-Each patch is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `bore`, `gitui`, `mdcat` and `lsd` fail loudly if the patch no longer applies; `tree-sitter` skips gracefully when upstream lacks `crates/generate/Cargo.toml` (older releases).
+Each customization is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `bore`, `gitui`, `mdcat` and `lsd` fail loudly if their patch no longer applies. `tree-sitter/bindgen.sh` is a text transform rather than a patch — upstream reflows the rquickjs dependency line every release, which has broken a `git apply` patch twice — and it fails loudly if it cannot remove the `bindgen` feature, but skips when upstream has no `crates/generate/Cargo.toml` (pre-0.26 releases) or never enables that feature.
 
 ## Common tasks
 

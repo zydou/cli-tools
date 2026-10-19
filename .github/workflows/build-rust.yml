@@ -146,18 +146,21 @@ jobs:
             exit 1
           fi
 
-      # tree-sitter >= 0.26 enables rquickjs's `bindgen` feature, which runs
-      # bindgen+libclang at build time to generate QuickJS bindings.
-      # bindgen >= 0.71 requires clang >= 9, but the cross-rs images
-      # for x86_64-linux-gnu (clang 3.8), aarch64-linux-gnu (clang 3.8)
-      # and aarch64-linux-musl (clang 6.0) ship older libclang that
-      # lacks `clang_getTranslationUnitTargetInfo`, so the build fails.
-      # Drop the `bindgen` feature so rquickjs uses its bundled,
-      # pre-generated static bindings instead of generating them.
+      # Tree-sitter >= 0.26 enables rquickjs with the `bindgen` feature, which
+      # runs bindgen + libclang at build time to regenerate QuickJS's FFI
+      # bindings. bindgen >= 0.71 needs clang >= 9, but the cross-rs images
+      # for x86_64-linux-gnu (clang 3.8), aarch64-linux-gnu (clang 3.8) and
+      # aarch64-linux-musl (clang 6.0) ship older libclang that lacks
+      # `clang_getTranslationUnitTargetInfo`, so those three targets fail.
+      # The macOS targets build natively, where rquickjs-sys already reuses its
+      # bundled bindings because target == host.
       #
-      # Only applies to >= 0.26 (uses crates/generate/Cargo.toml); older
-      # releases like 0.24.x use cli/generate/Cargo.toml without rquickjs,
-      # so the patch does not apply there — skip it gracefully.
+      # tree-sitter/bindgen.sh drops the feature so rquickjs falls back to its
+      # bundled, pre-generated bindings. It is a text transform rather than a
+      # `git apply` patch because upstream reflows that single dependency line
+      # every release (one feature per line in v0.26.x and v0.27.x, all on one
+      # line on current master) and bumps the rquickjs version each cycle; a
+      # patch has already had to be regenerated twice for that reason.
       #
       # `--locked` is omitted from tree-sitter's build_args (in build.json)
       # because upstream's Cargo.lock is frequently out of sync with
@@ -168,11 +171,7 @@ jobs:
         if: inputs.name == 'tree-sitter'
         run: |
           cd upstream
-          if [ -f crates/generate/Cargo.toml ]; then
-            git apply ../tree-sitter/bindgen.patch
-          else
-            echo "Skipping bindgen.patch: crates/generate/Cargo.toml not found (old tree-sitter release)"
-          fi
+          bash ../tree-sitter/bindgen.sh
 
       # mdcat's `curl = "0.4.47"` declaration activates the curl crate's
       # default `ssl` feature, which pulls openssl-sys and needs the host's
