@@ -1,0 +1,323 @@
+diff --git a/src/client.rs b/src/client.rs
+index cb8fa7b..3af8599 100644
+--- a/src/client.rs
++++ b/src/client.rs
+@@ -8,6 +8,7 @@ use tracing::{error, info, info_span, warn, Instrument};
+ use uuid::Uuid;
+ 
+ use crate::auth::Authenticator;
++use crate::proxy::Proxy;
+ use crate::shared::{ClientMessage, Delimited, ServerMessage, CONTROL_PORT, NETWORK_TIMEOUT};
+ 
+ /// State structure for the client.
+@@ -29,6 +30,9 @@ pub struct Client {
+ 
+     /// Optional secret used to authenticate clients.
+     auth: Option<Authenticator>,
++
++    /// Optional proxy used to reach the server.
++    proxy: Option<Proxy>,
+ }
+ 
+ impl Client {
+@@ -39,8 +43,10 @@ impl Client {
+         to: &str,
+         port: u16,
+         secret: Option<&str>,
++        proxy: Option<Proxy>,
+     ) -> Result<Self> {
+-        let mut stream = Delimited::new(connect_with_timeout(to, CONTROL_PORT).await?);
++        let mut stream =
++            Delimited::new(connect_with_timeout(to, CONTROL_PORT, proxy.as_ref()).await?);
+         let auth = secret.map(Authenticator::new);
+         if let Some(auth) = &auth {
+             auth.client_handshake(&mut stream).await?;
+@@ -66,6 +72,7 @@ impl Client {
+             local_port,
+             remote_port,
+             auth,
++            proxy,
+         })
+     }
+ 
+@@ -103,13 +110,15 @@ impl Client {
+     }
+ 
+     async fn handle_connection(&self, id: Uuid) -> Result<()> {
+-        let mut remote_conn =
+-            Delimited::new(connect_with_timeout(&self.to[..], CONTROL_PORT).await?);
++        let mut remote_conn = Delimited::new(
++            connect_with_timeout(&self.to[..], CONTROL_PORT, self.proxy.as_ref()).await?,
++        );
+         if let Some(auth) = &self.auth {
+             auth.client_handshake(&mut remote_conn).await?;
+         }
+         remote_conn.send(ClientMessage::Accept(id)).await?;
+-        let mut local_conn = connect_with_timeout(&self.local_host, self.local_port).await?;
++        // Connections to the local service are never routed through the proxy.
++        let mut local_conn = connect_with_timeout(&self.local_host, self.local_port, None).await?;
+         let mut parts = remote_conn.into_parts();
+         debug_assert!(parts.write_buf.is_empty(), "framed write buffer not empty");
+         local_conn.write_all(&parts.read_buf).await?; // mostly of the cases, this will be empty
+@@ -118,9 +127,18 @@ impl Client {
+     }
+ }
+ 
+-async fn connect_with_timeout(to: &str, port: u16) -> Result<TcpStream> {
+-    match timeout(NETWORK_TIMEOUT, TcpStream::connect((to, port))).await {
+-        Ok(res) => res,
++/// Open a connection to the server, through a proxy if one is configured.
++async fn connect_with_timeout(to: &str, port: u16, proxy: Option<&Proxy>) -> Result<TcpStream> {
++    let connect = async {
++        match proxy {
++            Some(proxy) => proxy.connect(to, port).await,
++            None => TcpStream::connect((to, port))
++                .await
++                .map_err(anyhow::Error::from),
++        }
++    };
++    match timeout(NETWORK_TIMEOUT, connect).await {
++        Ok(stream) => stream,
+         Err(err) => Err(err.into()),
+     }
+     .with_context(|| format!("could not connect to {to}:{port}"))
+diff --git a/src/lib.rs b/src/lib.rs
+index 18008dd..9c8f7d6 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -17,5 +17,6 @@
+ 
+ pub mod auth;
+ pub mod client;
++pub mod proxy;
+ pub mod server;
+ pub mod shared;
+diff --git a/src/main.rs b/src/main.rs
+index 71429c4..6774249 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1,7 +1,7 @@
+ use std::net::IpAddr;
+ 
+ use anyhow::Result;
+-use bore_cli::{client::Client, server::Server};
++use bore_cli::{client::Client, proxy::Proxy, server::Server};
+ use clap::{error::ErrorKind, CommandFactory, Parser, Subcommand};
+ 
+ #[derive(Parser, Debug)]
+@@ -34,6 +34,13 @@ enum Command {
+         /// Optional secret for authentication.
+         #[clap(short, long, env = "BORE_SECRET", hide_env_values = true)]
+         secret: Option<String>,
++
++        /// Optional HTTP proxy to reach the server, e.g. http://127.0.0.1:8080.
++        ///
++        /// Only applies to connections from this client to the server.
++        /// The destination is resolved by the proxy.
++        #[clap(long, env = "BORE_PROXY")]
++        proxy: Option<String>,
+     },
+ 
+     /// Runs the remote proxy server.
+@@ -69,8 +76,17 @@ async fn run(command: Command) -> Result<()> {
+             to,
+             port,
+             secret,
++            proxy,
+         } => {
+-            let client = Client::new(&local_host, local_port, &to, port, secret.as_deref()).await?;
++            let client = Client::new(
++                &local_host,
++                local_port,
++                &to,
++                port,
++                secret.as_deref(),
++                proxy.as_deref().map(Proxy::parse).transpose()?,
++            )
++            .await?;
+             client.listen().await?;
+         }
+         Command::Server {
+diff --git a/src/proxy.rs b/src/proxy.rs
+new file mode 100644
+index 0000000..9cd7062
+--- /dev/null
++++ b/src/proxy.rs
+@@ -0,0 +1,177 @@
++//! Proxy support for connections from the client to the bore server.
++//!
++//! The proxy is only used to reach the server. Connections to the local
++//! service that is being forwarded are always made directly.
++
++use std::fmt;
++use std::net::{IpAddr, SocketAddr};
++
++use anyhow::{anyhow, bail, Context, Result};
++use tokio::io::{AsyncReadExt, AsyncWriteExt};
++use tokio::net::TcpStream;
++
++/// Maximum size of a proxy reply header.
++const MAX_PROXY_HEADERS: usize = 16_384;
++
++/// A proxy that connections to the bore server are routed through.
++#[derive(Debug)]
++pub struct Proxy {
++    /// Host or IP address of the proxy.
++    host: String,
++
++    /// TCP port of the proxy.
++    port: u16,
++}
++
++impl Proxy {
++    /// Parse a proxy address of the form `http://host:port`.
++    ///
++    /// The destination is resolved by the proxy rather than locally.
++    pub fn parse(url: &str) -> Result<Self> {
++        let (scheme, rest) = url
++            .split_once("://")
++            .ok_or_else(|| anyhow!("expected a proxy URL of the form http://host:port"))?;
++        if scheme != "http" {
++            bail!("unsupported proxy scheme {scheme:?}, expected 'http'");
++        }
++        if rest.contains('@') {
++            bail!("proxy authentication is not supported, drop the username and password");
++        }
++        let (host, port) = split_host_port(rest)?;
++        Ok(Self { host, port })
++    }
++
++    /// Open a TCP connection to the destination, tunneled through this proxy.
++    pub async fn connect(&self, host: &str, port: u16) -> Result<TcpStream> {
++        let mut stream = TcpStream::connect((self.host.as_str(), self.port))
++            .await
++            .with_context(|| format!("could not connect to proxy {self}"))?;
++        http_connect(&mut stream, host, port)
++            .await
++            .with_context(|| format!("proxy {self} could not reach {host}:{port}"))?;
++        Ok(stream)
++    }
++}
++
++impl fmt::Display for Proxy {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        write!(f, "http://{}", format_target(&self.host, self.port))
++    }
++}
++
++/// Format `host:port`, bracketing IPv6 literals.
++fn format_target(host: &str, port: u16) -> String {
++    if host.contains(':') {
++        format!("[{host}]:{port}")
++    } else {
++        format!("{host}:{port}")
++    }
++}
++
++/// Split a `host:port` string, accepting bare and bracketed IPv6 literals as
++/// well as DNS names.
++fn split_host_port(hostport: &str) -> Result<(String, u16)> {
++    if let Ok(address) = hostport.parse::<SocketAddr>() {
++        return Ok((address.ip().to_string(), address.port()));
++    }
++    // A bare IP literal with no port is ambiguous, so reject it explicitly.
++    if hostport.parse::<IpAddr>().is_ok() {
++        bail!("missing port in proxy address {hostport:?}");
++    }
++
++    let (host, port) = hostport
++        .rsplit_once(':')
++        .ok_or_else(|| anyhow!("expected host:port in proxy address {hostport:?}"))?;
++    let port = port
++        .parse()
++        .with_context(|| format!("invalid proxy port {port:?}"))?;
++    let host = host
++        .strip_prefix('[')
++        .and_then(|host| host.strip_suffix(']'))
++        .unwrap_or(host)
++        .to_owned();
++    if host.is_empty() {
++        bail!("missing host in proxy address {hostport:?}");
++    }
++    Ok((host, port))
++}
++
++/// Send an HTTP `CONNECT` request, then consume the reply.
++async fn http_connect(stream: &mut TcpStream, host: &str, port: u16) -> Result<()> {
++    let target = format_target(host, port);
++    let request = format!(
++        "CONNECT {target} HTTP/1.1\r\nHost: {target}\r\nProxy-Connection: keepalive\r\n\r\n"
++    );
++    stream.write_all(request.as_bytes()).await?;
++
++    let headers = read_headers(stream).await?;
++    let status = headers.lines().next().unwrap_or_default();
++    let code = status.split_whitespace().nth(1).unwrap_or_default();
++    if !status.starts_with("HTTP/") || code != "200" {
++        bail!("proxy refused to establish the tunnel: {status}");
++    }
++    Ok(())
++}
++
++/// Read proxy reply headers, up to and including the blank line.
++async fn read_headers(stream: &mut TcpStream) -> Result<String> {
++    let mut headers = Vec::new();
++    let mut chunk = [0u8; 4096];
++    loop {
++        let n = stream
++            .read(&mut chunk)
++            .await
++            .context("reading proxy reply")?;
++        if n == 0 {
++            bail!("proxy closed the connection before sending a reply");
++        }
++        headers.extend_from_slice(&chunk[..n]);
++        if headers.windows(4).any(|window| window == b"\r\n\r\n") {
++            break;
++        }
++        if headers.len() > MAX_PROXY_HEADERS {
++            bail!("proxy sent an oversized reply");
++        }
++    }
++    Ok(String::from_utf8_lossy(&headers).into_owned())
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn parse() -> Result<()> {
++        for (url, expected) in [
++            ("http://127.0.0.1:8080", "http://127.0.0.1:8080"),
++            ("http://localhost:8080", "http://localhost:8080"),
++            ("http://[::1]:8080", "http://[::1]:8080"),
++        ] {
++            assert_eq!(Proxy::parse(url)?.to_string(), expected, "parsing {url}");
++        }
++        Ok(())
++    }
++
++    #[test]
++    fn parse_rejects_invalid_urls() {
++        for url in [
++            "127.0.0.1:8080",
++            "http://127.0.0.1",
++            "http://[::1]",
++            "http://127.0.0.1:abc",
++            "http://:8080",
++            "https://127.0.0.1:443",
++            "socks5://127.0.0.1:1080",
++            "http://alice:secret@127.0.0.1:8080",
++        ] {
++            assert!(Proxy::parse(url).is_err(), "expected error for {url}");
++        }
++    }
++
++    #[test]
++    fn formats_target() {
++        assert_eq!(format_target("127.0.0.1", 8080), "127.0.0.1:8080");
++        assert_eq!(format_target("bore.pub", 7835), "bore.pub:7835");
++        assert_eq!(format_target("::1", 8080), "[::1]:8080");
++    }
++}

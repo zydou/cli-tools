@@ -55,12 +55,14 @@ Called at the end of every build job. Uploads the tarball with `--clobber` (repl
 
 There are no per-tool READMEs. Only tools with build customization have a directory:
 
+- `bore/` — `http-proxy.patch`
+- `gitui/` — `start-tab.patch`
 - `gopls/` — `.goreleaser.yaml` (the only Go tool, so the only such file)
 - `tree-sitter/` — `bindgen.patch`
 - `mdcat/` — `vendored-curl.patch`
 - `lsd/` — `symlink-target-size.patch`
 
-Each patch is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `mdcat` and `lsd` fail loudly if the patch no longer applies; `tree-sitter` skips gracefully when upstream lacks `crates/generate/Cargo.toml` (older releases).
+Each patch is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `bore`, `gitui`, `mdcat` and `lsd` fail loudly if the patch no longer applies; `tree-sitter` skips gracefully when upstream lacks `crates/generate/Cargo.toml` (older releases).
 
 ## Common tasks
 
