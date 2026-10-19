@@ -55,14 +55,14 @@ Called at the end of every build job. Uploads the tarball with `--clobber` (repl
 
 There are no per-tool READMEs. Only tools with build customization have a directory:
 
-- `bore/` — `http-proxy.patch`
-- `gitui/` — `start-tab.patch`
+- `bore/` — `patch.sh` + `http-proxy.patch`
+- `gitui/` — `patch.sh` + `start-tab.patch`
 - `gopls/` — `.goreleaser.yaml` (the only Go tool, so the only such file)
-- `tree-sitter/` — `bindgen.sh`
-- `mdcat/` — `vendored-curl.patch`
-- `lsd/` — `symlink-target-size.patch`
+- `tree-sitter/` — `patch.sh`
+- `mdcat/` — `patch.sh` + `vendored-curl.patch`
+- `lsd/` — `patch.sh` + `symlink-target-size.patch`
 
-Each customization is applied by an `if: inputs.name == '<tool>'` step in `build-rust.yml`. `bore`, `gitui`, `mdcat` and `lsd` fail loudly if their patch no longer applies. `tree-sitter/bindgen.sh` is a text transform rather than a patch — upstream reflows the rquickjs dependency line every release, which has broken a `git apply` patch twice — and it fails loudly if it cannot remove the `bindgen` feature, but skips when upstream has no `crates/generate/Cargo.toml` (pre-0.26 releases) or never enables that feature.
+`<tool>/patch.sh` is the single entry point for that tool's customization. One step in `build-rust.yml` runs it when the script exists — it `cd`s into `upstream` and executes `bash <tool>/patch.sh`. Every script documents why the tool needs the change and fails loudly, naming what drifted, if the customization no longer applies. `bore`, `gitui`, `mdcat` and `lsd` gate `git apply` behind `git apply --check`. `tree-sitter/patch.sh` is a text transform rather than a patch — upstream reflows the rquickjs dependency line every release, which has broken a `git apply` patch twice — and it fails loudly if it cannot remove the `bindgen` feature, but skips when upstream has no `crates/generate/Cargo.toml` (pre-0.26 releases) or never enables that feature.
 
 ## Common tasks
 
@@ -71,7 +71,7 @@ Each customization is applied by an `if: inputs.name == '<tool>'` step in `build
 1. Add an entry to `build.json` with the right `type`, `upstream`, `bin`, `build_args`, target booleans, and `repo`. Keys are ordered alphabetically; inner keys follow `bin, type, build_args, target_*, upstream, repo` (`disabled` first when present).
 2. Create the sub-repo: `gh repo create zydou/<tool>-binary --public --add-readme --description "Nightly cross-compiled builds of <tool>"`, then replace the default README with the standard template (copy any existing `zydou/*-binary` README and swap the tool name).
 3. For Go tools, add a `<tool>/.goreleaser.yaml` (see `gopls/.goreleaser.yaml`).
-4. For Rust tools needing a patch, add a `<tool>/` directory with the patch and a name-guarded step in `build-rust.yml`.
+4. For Rust tools needing a patch, add `<tool>/patch.sh` (plus the `.patch` files it applies). No workflow change — `build-rust.yml`'s single Apply patch step picks it up.
 5. Push to `main` — the scheduler picks it up immediately and dispatches all stale targets.
 
 ### Trigger a manual build
@@ -90,7 +90,7 @@ Validate by pushing to `main` and watching the workflow runs.
 - Asset naming must stay consistent: `{tool}-{target}.tar.xz` for rust, `{tool}-{os}-{arch}.tar.xz` for go (e.g. `gopls-linux-amd64.tar.xz`) — no commit hash in filenames. The scheduler, uploader, and the nightly staleness check (release body) all depend on these patterns. The Go form comes from `gopls/.goreleaser.yaml`'s `name_template`, which the workflow rewrites to use the tool name.
 - `build.json` keys are ordered alphabetically (maintained by convention).
 - **Binary name vs tool name**: the `bin` field can differ from the dict key. Current mismatches: `igrep`→`ig`, `repgrep`→`rgr`.
-- New tools normally only need `build.json` + the sub-repo; edit workflow YAML only for special cases (patches).
+- New tools normally only need `build.json` + the sub-repo. A customization is a `<tool>/patch.sh`; the workflow already runs it, so there is no YAML to edit.
 - Rust release profile is hardened in `build-rust.yml`: `strip = true`, `opt-level = "z"`, `lto = true`, `codegen-units = 1`, `panic = "abort"`.
 - `--locked` is omitted for `bore`, `mdcat`, and `tree-sitter` because their upstream `Cargo.lock` is frequently out of sync with `Cargo.toml` on HEAD.
 - The active state lives in `build.json` + the workflow YAMLs, not in git history — early `feat:` commits that added per-tool READMEs, the tmux C build, and `hoard/openssl.patch` were deleted in `2d95f02` and their files no longer exist.

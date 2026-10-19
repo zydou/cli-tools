@@ -124,103 +124,20 @@ jobs:
           panic = "abort"
           EOF
 
-      # bore has no proxy support, so a client behind an egress-only network
-      # cannot reach a bore server. Patch in `--proxy` / `BORE_PROXY`, which
-      # routes the client's control and data connections through an HTTP
-      # CONNECT proxy. Connections to the local service being forwarded are
-      # always direct. See the module docs in src/proxy.rs.
+      # Per-tool customizations live in <tool>/patch.sh and run from inside the
+      # upstream checkout. Each script documents why the tool needs it and fails
+      # loudly — naming what drifted — if the customization no longer applies.
+      # No-op for tools without one.
       #
-      # The patch is functional source only (src/{lib,client,main,proxy}.rs) —
-      # no docs, no tests. It is a breaking change to Client::new(), which
-      # gains a `proxy` parameter, so the upstream e2e test call sites no
-      # longer compile. build-rust only runs `cargo build`, which never
-      # compiles tests/, so CI is unaffected.
-      - name: Apply bore http proxy patch
-        if: inputs.name == 'bore'
+      # The test must check <tool>/patch.sh directly: a hashFiles glob is
+      # resolved at step start, after the upstream checkout, so it could match
+      # an unrelated upstream/patch.sh and run the step for a tool that has
+      # none.
+      - name: Apply patch
         run: |
-          cd upstream
-          if git apply --check ../bore/http-proxy.patch; then
-            git apply ../bore/http-proxy.patch
-          else
-            echo "::error::bore/http-proxy.patch does not apply — upstream src/client.rs, src/main.rs or src/lib.rs drifted. Re-generate the patch or drop it."
-            exit 1
-          fi
-
-      # Tree-sitter >= 0.26 enables rquickjs with the `bindgen` feature, which
-      # runs bindgen + libclang at build time to regenerate QuickJS's FFI
-      # bindings. bindgen >= 0.71 needs clang >= 9, but the cross-rs images
-      # for x86_64-linux-gnu (clang 3.8), aarch64-linux-gnu (clang 3.8) and
-      # aarch64-linux-musl (clang 6.0) ship older libclang that lacks
-      # `clang_getTranslationUnitTargetInfo`, so those three targets fail.
-      # The macOS targets build natively, where rquickjs-sys already reuses its
-      # bundled bindings because target == host.
-      #
-      # tree-sitter/bindgen.sh drops the feature so rquickjs falls back to its
-      # bundled, pre-generated bindings. It is a text transform rather than a
-      # `git apply` patch because upstream reflows that single dependency line
-      # every release (one feature per line in v0.26.x and v0.27.x, all on one
-      # line on current master) and bumps the rquickjs version each cycle; a
-      # patch has already had to be regenerated twice for that reason.
-      #
-      # `--locked` is omitted from tree-sitter's build_args (in build.json)
-      # because upstream's Cargo.lock is frequently out of sync with
-      # Cargo.toml on HEAD. Without --locked Cargo auto-updates the lock
-      # file, which is required on native macOS runners (no cross Docker
-      # image to paper over the mismatch).
-      - name: Disable tree-sitter rquickjs bindgen
-        if: inputs.name == 'tree-sitter'
-        run: |
-          cd upstream
-          bash ../tree-sitter/bindgen.sh
-
-      # mdcat's `curl = "0.4.47"` declaration activates the curl crate's
-      # default `ssl` feature, which pulls openssl-sys and needs the host's
-      # libssl-dev headers. cross-rs Linux images don't ship dev headers, so
-      # the build fails on every Linux target. Patch Cargo.toml to drop
-      # the default feature and use static-curl + static-ssl + zlib-ng,
-      # which vendors libcurl, OpenSSL and zlib into the binary. macOS
-      # still works because curl-sys auto-activates force-system-lib-on-osx
-      # on darwin.
-      - name: Apply mdcat vendored curl patch
-        if: inputs.name == 'mdcat'
-        run: |
-          cd upstream
-          if git apply --check ../mdcat/vendored-curl.patch; then
-            git apply ../mdcat/vendored-curl.patch
-          else
-            echo "::error::mdcat/vendored-curl.patch does not apply — upstream Cargo.toml's curl dep line changed. Re-generate the patch or drop it."
-            exit 1
-          fi
-
-      # lsd's size column showed a symlink's own size (the byte length of
-      # the target path string) instead of the target's real size. Patch
-      # from_path so it reads the size from the target file's metadata
-      # (already fetched for file_type) rather than the link's.
-      - name: Apply lsd symlink target size patch
-        if: inputs.name == 'lsd'
-        run: |
-          cd upstream
-          if git apply --check ../lsd/symlink-target-size.patch; then
-            git apply ../lsd/symlink-target-size.patch
-          else
-            echo "::error::lsd/symlink-target-size.patch does not apply — upstream src/meta/mod.rs changed around the size computation. Re-generate the patch or drop it."
-            exit 1
-          fi
-
-      # gitui's upstream has no --start-tab flag. Patch App::new to open on the
-      # CLI-given tab index (0: Status, 1: Log, 2: Files, 3: Stashing, 4: Stashes)
-      # when given, falling back to the per-repo .git/gitui persisted tab. Also
-      # guard set_tab against an out-of-range index, since it is reached from
-      # Options::current_tab() which reads a user-editable .git/gitui.
-      - name: Apply gitui start-tab patch
-        if: inputs.name == 'gitui'
-        run: |
-          cd upstream
-          if git apply --check ../gitui/start-tab.patch; then
-            git apply ../gitui/start-tab.patch
-          else
-            echo "::error::gitui/start-tab.patch does not apply — upstream src/app.rs, src/args.rs or src/main.rs drifted. Re-generate the patch or drop it."
-            exit 1
+          if [ -f "${{ inputs.name }}/patch.sh" ]; then
+            cd upstream
+            bash "../${{ inputs.name }}/patch.sh"
           fi
 
       - name: Build release binary
