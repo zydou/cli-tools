@@ -14,7 +14,7 @@ There is no local build/test loop — changes to `build.json` or the workflow fi
 
 ### Build manifest: `build.json`
 
-The single source of truth for what gets built: **18 tools, all enabled** (17 `rust`, 1 `golang`). No tool is currently `disabled`.
+The single source of truth for what gets built: **20 tools, all enabled** (19 `rust`, 1 `golang`). No tool is currently `disabled`.
 
 Each key is a tool name with:
 
@@ -24,10 +24,10 @@ Each key is a tool name with:
 - `bin`: output binary name (may differ from tool name)
 - `build_args` (rust): extra `cargo build` flags
 - `ldflags` / `goversion` (golang): Go build ldflags and minimum Go version
-- `target_*`: booleans per target triple. Every enabled rust tool builds all 6; the field is what controls it.
+- `target_*`: booleans per target triple. Every enabled rust tool builds all 6 except `telemt`, which is Linux-only; the field is what controls it.
 - `disabled`: set to `true` to skip a tool without removing its config. Still honored by `scheduler.py`, but unused as of now.
 
-**Enabled tools:** bore, delta, dua, gopls, igrep, lessi, lsd, macchina, mdcat, onefetch, repgrep, rust-analyzer, ryl, taplo, telemt, texlab, tokei, tree-sitter.
+**Enabled tools:** bore, delta, dua, gitui, gopls, igrep, lessi, lsd, macchina, mdcat, onefetch, repgrep, rust-analyzer, ryl, taplo, telemt, texlab, tokei, tree-sitter, zizmor.
 
 ### Scheduler: `scheduler.py`
 
@@ -103,3 +103,4 @@ Validate by pushing to `main` and watching the workflow runs.
 - `build-go.yml` passes `GORELEASER_CURRENT_TAG` on tag releases because upstream tags like `gopls/v0.23.0-pre.2` contain a slash and are not valid semver, which breaks goreleaser's checksum file path.
 - `dispatch_go` builds all 4 targets in one workflow run regardless of which are stale, so a single missing target costs a full rebuild.
 - The `macos-26-intel` runner is listed in `build-rust.yml`'s `runner` choices but is never selected by `scheduler.py` — it is only for manual runs.
+- `zizmor` (1.97.0), `ryl` (1.99.0) and `repgrep` (1.96.0) upstream ship a `rust-toolchain.toml` pinning a specific version. That pin outranks the `stable` that `build-rust.yml` installs, so those three tools build on the pinned toolchain, not stable. It is harmless: every Linux target runs through `cross`, which does `rustup target add` for whichever toolchain rustup resolves, and each macOS target builds natively on a runner whose host triple equals the build target. Do not delete the pin in a `patch.sh` — it is what upstream CI itself uses.
