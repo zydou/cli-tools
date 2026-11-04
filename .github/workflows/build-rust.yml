@@ -22,7 +22,7 @@ on:
         type: string
       binary_name:
         required: true
-        description: cli binary name
+        description: cli binary name(s), space-separated for multi-binary tools
         default: lessi
         type: string
       target:
@@ -154,7 +154,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |-
           cd "$GITHUB_WORKSPACE/upstream/target/${{inputs.target}}/release"
-          tar -cJf "${{inputs.name}}-${{inputs.target}}.tar.xz" "${{inputs.binary_name}}"
+          # binary_name may be space-separated for multi-binary tools
+          # (e.g. rage ships rage, rage-keygen, rage-mount).
+          tar -cJf "${{inputs.name}}-${{inputs.target}}.tar.xz" ${{inputs.binary_name}}
           mv "${{inputs.name}}-${{inputs.target}}.tar.xz" "$GITHUB_WORKSPACE/${{inputs.name}}-${{inputs.target}}.tar.xz"
           cd "$GITHUB_WORKSPACE"
           pip install requests
