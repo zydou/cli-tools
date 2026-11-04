@@ -150,9 +150,9 @@
     "repo": "zydou/onefetch-binary"
   },
   "rage": {
-    "bin": "rage rage-keygen rage-mount",
+    "bin": "rage rage-keygen",
     "type": "rust",
-    "build_args": "--release --locked -p rage --features mount",
+    "build_args": "--release --locked -p rage",
     "target_aarch64_darwin": true,
     "target_aarch64_linux_gnu": true,
     "target_aarch64_linux_musl": true,
